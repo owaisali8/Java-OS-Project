@@ -166,7 +166,12 @@ public class VEnv {
     //--------------------------------------------------------------------------
 
     //Load-Decode-Execute-------------------------------------------------------
-    public final void readFile(String filename) {
+    public final void loadIntoMemoryAndExecute(String line){//for testing purposes
+        this.loadIntoMemory(line);
+        this.execute();
+    }
+    
+    private void readFile(String filename) {
         try {
             String line;
             Scanner code;
@@ -180,7 +185,7 @@ public class VEnv {
         }
     }
 
-    public void loadIntoMemory(String line) {
+    private void loadIntoMemory(String line) {
         short codeCounter = 0;
         SPR[0] = codeCounter; //CB
         SPR[2] = codeCounter; //CC
