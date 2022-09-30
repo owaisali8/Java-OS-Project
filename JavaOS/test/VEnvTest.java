@@ -47,7 +47,7 @@ public class VEnvTest {
     }
 
     @Test
-    public void test4_R2I() { // Test 3 for Register to Immediate 
+    public void test4_R2I() { // Test 4 for Register to Immediate 
         var main = new VEnv();
         main.loadIntoMemoryAndExecute("31 00 00 0A");
         assertEquals(10, main.getGPR()[0]); //Addi
@@ -69,7 +69,7 @@ public class VEnvTest {
     }
     
     @Test
-    public void test5_SO() { // Test 3 for Register to Immediate 
+    public void test5_SO() { // Test 4 for Singal Operand
         var main = new VEnv();
         main.loadIntoMemoryAndExecute("30 00 00 05"); //mov 5 in r0
         main.loadIntoMemoryAndExecute("71 00");
@@ -90,6 +90,20 @@ public class VEnvTest {
         main.loadIntoMemoryAndExecute("76 00 F3");
         assertEquals(6,main.getGPR()[0]); //dec
 
+    }
+    
+    @Test
+    public void test6_MemInc() { // Test 6 for memory instructions 
+        var main = new VEnv();
+        String code = "30 00 00 0F F3";
+        main.loadIntoMemoryAndExecute(code);
+        assertEquals(15,main.getGPR()[0]);
+        
+        main.loadIntoMemoryAndExecute("52 00 00 10 F2");
+        assertEquals(15, main.getMem()[16]);  //movs
+        
+        main.loadIntoMemoryAndExecute("51 02 00 10 F3");
+        assertEquals(15, main.getGPR()[2]); //movl
     }
 
 }

@@ -46,33 +46,37 @@ public class VEnv {
     public short[] getSPR() {
         return this.SPR;
     }
+    
+    public byte[] getMem(){
+        return this.memory;
+    }
 
     // Implentation of register to registor instructions -----------------------
-    private void mov(int r1, int r2) {
+    private void mov(byte r1, byte r2) {
         GPR[r1] = GPR[r2];
     }
 
-    private void add(int r1, int r2) {
+    private void add(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] + GPR[r2]);
     }
 
-    private void sub(int r1, int r2) {
+    private void sub(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] - GPR[r2]);
     }
 
-    private void mul(int r1, int r2) {
+    private void mul(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] * GPR[r2]);
     }
 
-    private void div(int r1, int r2) {
+    private void div(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] / GPR[r2]);
     }
 
-    private void and(int r1, int r2) {
+    private void and(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] & GPR[r2]);
     }
 
-    private void or(int r1, int r2) {
+    private void or(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] | GPR[r2]);
     }
     //--------------------------------------------------------------------------
@@ -82,31 +86,31 @@ public class VEnv {
         return (short) ((b1 << 8) | (b2 & 0xFF));
     }
 
-    private void movi(int r1, byte val1, byte val2) {
+    private void movi(byte r1, byte val1, byte val2) {
         GPR[r1] = this.twoBytesToShort(val1, val2);
     }
 
-    private void addi(int r1, byte val1, byte val2) {
+    private void addi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] + this.twoBytesToShort(val1, val2));
     }
 
-    private void subi(int r1, byte val1, byte val2) {
+    private void subi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] - this.twoBytesToShort(val1, val2));
     }
 
-    private void muli(int r1, byte val1, byte val2) {
+    private void muli(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] * this.twoBytesToShort(val1, val2));
     }
 
-    private void divi(int r1, byte val1, byte val2) {
+    private void divi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] / this.twoBytesToShort(val1, val2));
     }
 
-    private void andi(int r1, byte val1, byte val2) {
+    private void andi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] & this.twoBytesToShort(val1, val2));
     }
 
-    private void ori(int r1, byte val1, byte val2) {
+    private void ori(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] | this.twoBytesToShort(val1, val2));
     }
 
@@ -116,36 +120,40 @@ public class VEnv {
 
     //--------------------------------------------------------------------------
     //Implementation of Memory Instructions-------------------------------------
-    private void movl(){
-        
+    private void movl(byte r, byte val1, byte val2){
+        short location = this.twoBytesToShort(val1, val2);
+        GPR[r] = memory[location];
     }
     
-    private void movs(){
+    private void movs(byte r, byte val1, byte val2){
+        short value = GPR[r];
+        short location = this.twoBytesToShort(val1, val2);
+        memory[location] = (byte) value;
         
     }
     //--------------------------------------------------------------------------
     //Implementation of Single Operand Instructions-----------------------------
-    private void shl(int r1) {
+    private void shl(byte r1) {
         GPR[r1] = (short) (GPR[r1] << 1);
     }
 
-    private void shr(int r1) {
+    private void shr(byte r1) {
         GPR[r1] = (short) (GPR[r1] >> 1);
     }
 
-    private void rtl(int r1) {
+    private void rtl(byte r1) {
         GPR[r1] = (short) (Integer.rotateLeft(GPR[r1], 1));
     }
 
-    private void rtr(int r1) {
+    private void rtr(byte r1) {
         GPR[r1] = (short) (Integer.rotateRight(GPR[r1], 1));
     }
 
-    private void inc(int r1) {
+    private void inc(byte r1) {
         GPR[r1] = (short) (GPR[r1] + 1);
     }
 
-    private void dec(int r1) {
+    private void dec(byte r1) {
         GPR[r1] = (short) (GPR[r1] - 1);
     }
 
@@ -267,6 +275,14 @@ public class VEnv {
                 case "3D":
                     this.act(memory[SPR[9] + 1], memory[SPR[9] + 2]);
                     SPR[9] += 2;
+                    break;
+                case "51":
+                    this.movl(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "52":
+                    this.movs(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
                     break;
                 case "71": 
                     this.shl(memory[SPR[9]+1]);
