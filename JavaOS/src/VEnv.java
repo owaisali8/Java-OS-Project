@@ -11,6 +11,19 @@ import java.util.Scanner;
 public class VEnv {
 
     // Intializing our arrays
+    /*
+    Code base (CB)            - 0
+    Code limit (CL)           - 1
+    Code counter (CC)         - 2
+    Data base (DB)            - 3
+    Data limit (DL)           - 4
+    Data counter (DC)         - 5
+    Stack base (SB)           - 6
+    Stack counter (SC)        - 7
+    Stack limit (SL)          - 8
+    Program counter (PC)      - 9
+    Instruction Register (IR) - 10
+    */
     private final short[] GPR = new short[16]; // R0-R15
     private final short[] SPR = new short[16];
     private final boolean[] flagRegistor = new boolean[16];
@@ -31,9 +44,9 @@ public class VEnv {
     }
 
     //showing our memory contents
-    public String showMem() {
+    public String showMem(int n) {
         String s = "Memory:\n[";
-        for (int i = 0; i <= 15; i++) {
+        for (int i = 0; i <= n; i++) {
             s += memory[i] + ", ";
         }
         return s + "]";
@@ -113,8 +126,19 @@ public class VEnv {
     private void ori(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] | this.twoBytesToShort(val1, val2));
     }
-
+    
+    private void jmp(byte val1, byte val2){
+        SPR[9] = this.twoBytesToShort(val1, val2);
+    }
+    
+    private void call(byte val1, byte val2){
+        SPR[7]++;
+        memory[SPR[7]] = (byte) SPR[9];
+        SPR[9] = this.twoBytesToShort(val1, val2);
+    }
+    
     private void act(byte val1, byte val2) { //Do the service defined by num
+        //No service is mentioned 
         this.twoBytesToShort(val1, val2);
     }
 
@@ -157,19 +181,28 @@ public class VEnv {
         GPR[r1] = (short) (GPR[r1] - 1);
     }
 
-    private void push() {
-    } //will be implemented later 
+    private void push(byte r1) {
+        //SPR[7] is Stack Counter (SC)
+        SPR[7]++;
+        memory[SPR[7]] = (byte) GPR[r1];
+    }  
 
-    private void pop() {
-    } //will be implemented later 
+    private void pop(byte r1) {
+        GPR[r1] = memory[SPR[7]];
+        memory[SPR[7]] = 0;
+        SPR[7]--;
+   
+    }
 
     //--------------------------------------------------------------------------
     
     //Implementation of No Operand Instructions---------------------------------
     
     private void returnPC() {
-        
-    } //will be implemented later 
+        SPR[9] = memory[SPR[7]];
+        memory[SPR[7]] = 0;
+        SPR[7]--;
+    }
     
     //--------------------------------------------------------------------------
 
@@ -206,6 +239,9 @@ public class VEnv {
     }
 
     private void execute() {
+        //SPR[6] is Stack Base
+        SPR[6] = 150; SPR[7] = SPR[6];
+        
         SPR[9] = SPR[0]; // SPR[9] is PC and SPR[0] is CB
         while (SPR[9] <= SPR[2]) { // Checking PC with CC
             SPR[10] = memory[SPR[9]]; //SPR[10] is IR
@@ -271,7 +307,14 @@ public class VEnv {
                     this.ori(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
                     SPR[9] += 3;
                     break;
-
+                case "3B":
+                    this.jmp(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "3C":
+                    this.call(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
                 case "3D":
                     this.act(memory[SPR[9] + 1], memory[SPR[9] + 2]);
                     SPR[9] += 2;
@@ -307,6 +350,17 @@ public class VEnv {
                 case "76": 
                     this.dec(memory[SPR[9]+1]);
                     SPR[9]++;
+                    break;
+                case "77":
+                    this.push(memory[SPR[9]+1]);
+                    SPR[9]++;
+                    break;
+                case "78":
+                    this.pop(memory[SPR[9]+1]);
+                    SPR[9]++;
+                    break;
+                case "F1":
+                    this.returnPC();
                     break;
                 case "F2": //NOOP: No Operation
                     break;

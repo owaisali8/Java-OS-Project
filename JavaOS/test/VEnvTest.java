@@ -105,5 +105,13 @@ public class VEnvTest {
         main.loadIntoMemoryAndExecute("51 02 00 10 F3");
         assertEquals(15, main.getGPR()[2]); //movl
     }
+    
+      @Test
+    public void test7_Stack() { // Test 7 for Stack
+        var main = new VEnv();
+        String code = "75 01 75 01 77 01 78 02 F3";
+        main.loadIntoMemoryAndExecute(code);
+        assertEquals(02,main.getGPR()[2]);
+    }
 
 }
