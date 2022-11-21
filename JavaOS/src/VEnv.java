@@ -220,12 +220,32 @@ public class VEnv {
             code = new Scanner(new File(filename));
             line = code.nextLine();
             code.close();
-            loadIntoMemory(line);
+            
+            if(filename.endsWith(".byte")){
+                loadByteFile(line);
+            }
+            
+            else {
+                loadIntoMemory(line);
+            }
+            
         } catch (FileNotFoundException e) {
             System.out.println("File not found.");
         }
     }
 
+    private void loadByteFile(String line){
+        short codeCounter = 0;
+        SPR[0] = codeCounter; //CB
+        SPR[2] = codeCounter; //CC
+        String[] byteArray = line.split(" ");
+        for (String b : byteArray) {
+            memory[codeCounter] = Byte.parseByte(b);
+            codeCounter++;
+        }
+        SPR[2] = codeCounter;   
+    }
+    
     private void loadIntoMemory(String line) {
         short codeCounter = 0;
         SPR[0] = codeCounter; //CB
