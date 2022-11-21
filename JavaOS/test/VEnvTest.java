@@ -1,5 +1,6 @@
 
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -60,58 +61,68 @@ public class VEnvTest {
 
         main.loadIntoMemoryAndExecute("34 01 00 02 F3");
         assertEquals(-11, main.getGPR()[1]); //divi
-        
+
         main.loadIntoMemoryAndExecute("35 00 00 08 F3");
         assertEquals(8, main.getGPR()[0]); //andi
-        
+
         main.loadIntoMemoryAndExecute("36 00 00 0E F3");
         assertEquals(14, main.getGPR()[0]); //ori
     }
-    
+
     @Test
     public void test5_SO() { // Test 4 for Singal Operand
         var main = new VEnv();
         main.loadIntoMemoryAndExecute("30 00 00 05"); //mov 5 in r0
         main.loadIntoMemoryAndExecute("71 00");
         assertEquals(10, main.getGPR()[0]); //shl
-        
+
         main.loadIntoMemoryAndExecute("72 00 F2");
-        assertEquals(5,main.getGPR()[0]); //shr
-        
+        assertEquals(5, main.getGPR()[0]); //shr
+
         main.loadIntoMemoryAndExecute("73 00 F2");
-        assertEquals(10,main.getGPR()[0]); //rtl
-        
+        assertEquals(10, main.getGPR()[0]); //rtl
+
         main.loadIntoMemoryAndExecute("74 00 F2");
-        assertEquals(5,main.getGPR()[0]); //rtr
-        
+        assertEquals(5, main.getGPR()[0]); //rtr
+
         main.loadIntoMemoryAndExecute("75 00 75 00 F3");
-        assertEquals(7,main.getGPR()[0]); //inc
-        
+        assertEquals(7, main.getGPR()[0]); //inc
+
         main.loadIntoMemoryAndExecute("76 00 F3");
-        assertEquals(6,main.getGPR()[0]); //dec
+        assertEquals(6, main.getGPR()[0]); //dec
 
     }
-    
+
     @Test
     public void test6_MemInc() { // Test 6 for memory instructions 
         var main = new VEnv();
         String code = "30 00 00 0F F3";
         main.loadIntoMemoryAndExecute(code);
-        assertEquals(15,main.getGPR()[0]);
-        
+        assertEquals(15, main.getGPR()[0]);
+
         main.loadIntoMemoryAndExecute("52 00 00 10 F2");
         assertEquals(15, main.getMem()[16]);  //movs
-        
+
         main.loadIntoMemoryAndExecute("51 02 00 10 F3");
         assertEquals(15, main.getGPR()[2]); //movl
     }
-    
-      @Test
+
+    @Test
     public void test7_Stack() { // Test 7 for Stack
         var main = new VEnv();
         String code = "75 01 75 01 77 01 78 02 F3";
         main.loadIntoMemoryAndExecute(code);
-        assertEquals(02,main.getGPR()[2]);
+        assertEquals(02, main.getGPR()[2]);
     }
 
+    @Test
+    public void test7_Flags() { // Test 7 for Stack
+        var main = new VEnv();
+        String code = "17 00 01 F3";
+        main.loadIntoMemoryAndExecute(code);
+        Assertions.assertTrue(main.getFlags()[1] == true);
+    }
+    
+    public static void main(String[] args){
+    }
 }

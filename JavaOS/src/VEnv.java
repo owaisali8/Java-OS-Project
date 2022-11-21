@@ -11,6 +11,7 @@ import java.util.Scanner;
 public class VEnv {
 
     // Intializing our arrays
+    //  Special Purpose Registors(SPRs)
     /*
     Code base (CB)            - 0
     Code limit (CL)           - 1
@@ -24,6 +25,16 @@ public class VEnv {
     Program counter (PC)      - 9
     Instruction Register (IR) - 10
     */
+    
+    // Flag Reigstors
+    /* 
+    Carry       - 0
+    Zero        - 1
+    Sign        - 2
+    Overflow    - 3
+    Unused      - 4-15*
+    */
+    
     private final short[] GPR = new short[16]; // R0-R15
     private final short[] SPR = new short[16];
     private final boolean[] flagRegistor = new boolean[16];
@@ -42,7 +53,11 @@ public class VEnv {
     public String toString() {
         return "\nGPR:\n" + Arrays.toString(GPR) + "\nSPR:\n" + Arrays.toString(SPR);
     }
-
+    
+    public String showFlags() {
+        return "\nFlags:\n" + Arrays.toString(flagRegistor);
+    }
+    
     //showing our memory contents
     public String showMem(int n) {
         String s = "Memory:\n[";
@@ -63,7 +78,11 @@ public class VEnv {
     public byte[] getMem(){
         return this.memory;
     }
-
+    
+    public boolean[] getFlags(){
+        return this.flagRegistor;
+    }
+    
     // Implentation of register to registor instructions -----------------------
     private void mov(byte r1, byte r2) {
         GPR[r1] = GPR[r2];
@@ -71,26 +90,50 @@ public class VEnv {
 
     private void add(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] + GPR[r2]);
+        int num = (GPR[r1] + GPR[r2]);
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
 
     private void sub(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] - GPR[r2]);
+        int num = (GPR[r1] - GPR[r2]);
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
 
     private void mul(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] * GPR[r2]);
+        int num = (GPR[r1] * GPR[r2]);
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
 
     private void div(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] / GPR[r2]);
+        int num = (GPR[r1] / GPR[r2]);
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
 
     private void and(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] & GPR[r2]);
+        int num = (GPR[r1] & GPR[r2]);
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
 
     private void or(byte r1, byte r2) {
         GPR[r1] = (short) (GPR[r1] | GPR[r2]);
+        int num = (GPR[r1] | GPR[r2]);
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
     //--------------------------------------------------------------------------
 
@@ -105,26 +148,74 @@ public class VEnv {
 
     private void addi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] + this.twoBytesToShort(val1, val2));
+        
+        int num = (GPR[r1] + this.twoBytesToShort(val1, val2));
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
 
     private void subi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] - this.twoBytesToShort(val1, val2));
+        
+        int num = (GPR[r1] - this.twoBytesToShort(val1, val2));
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
 
     private void muli(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] * this.twoBytesToShort(val1, val2));
+        
+        int num = (GPR[r1] * this.twoBytesToShort(val1, val2));
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
 
     private void divi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] / this.twoBytesToShort(val1, val2));
+        
+        int num = (GPR[r1] / this.twoBytesToShort(val1, val2));
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
 
     private void andi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] & this.twoBytesToShort(val1, val2));
+        
+        int num = (GPR[r1] & this.twoBytesToShort(val1, val2));
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
 
     private void ori(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] | this.twoBytesToShort(val1, val2));
+        
+        int num = (GPR[r1] | this.twoBytesToShort(val1, val2));
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+        flagRegistor[3] = FlagCheck.checkOverflow(num);
+    }
+    
+    private void bz(byte val1, byte val2){ //Check flag register, and jump to offset
+        //if zero bit is ON: then jmp
+        if(this.flagRegistor[1]) this.jmp(val1, val2);
+    }
+    
+    private void bnz(byte val1, byte val2){
+        //if zero bit is OFF: then jmp
+        if(!this.flagRegistor[1]) this.jmp(val1, val2);
+    }
+    
+    private void bc(byte val1, byte val2){
+        if(!this.flagRegistor[0]) this.jmp(val1, val2);
+    }
+    
+    private void bs(byte val1, byte val2){
+        if(!this.flagRegistor[2]) this.jmp(val1, val2);
     }
     
     private void jmp(byte val1, byte val2){
@@ -133,7 +224,7 @@ public class VEnv {
     
     private void call(byte val1, byte val2){
         SPR[7]++;
-        memory[SPR[7]] = (byte) SPR[9];
+        memory[SPR[7]] = (byte) SPR[9]; 
         SPR[9] = this.twoBytesToShort(val1, val2);
     }
     
@@ -158,19 +249,42 @@ public class VEnv {
     //--------------------------------------------------------------------------
     //Implementation of Single Operand Instructions-----------------------------
     private void shl(byte r1) {
-        GPR[r1] = (short) (GPR[r1] << 1);
+        short num = (short) (GPR[r1] << 1);
+        GPR[r1] = num;
+        
+        flagRegistor[0] = FlagCheck.checkCarry(num);
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
     }
 
     private void shr(byte r1) {
-        GPR[r1] = (short) (GPR[r1] >> 1);
+        short num = (short) (GPR[r1] >> 1);
+        GPR[r1] = num;
+                
+        flagRegistor[0] = FlagCheck.checkCarry(num);
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+
     }
 
     private void rtl(byte r1) {
-        GPR[r1] = (short) (Integer.rotateLeft(GPR[r1], 1));
+        short num = (short) (Integer.rotateLeft(GPR[r1], 1));
+        GPR[r1] = num;
+                
+        flagRegistor[0] = FlagCheck.checkCarry(num);
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+
     }
 
     private void rtr(byte r1) {
-        GPR[r1] = (short) (Integer.rotateRight(GPR[r1], 1));
+        short num = (short) (Integer.rotateRight(GPR[r1], 1));
+        GPR[r1] = num;
+        
+        flagRegistor[0] = FlagCheck.checkCarry(num);
+        flagRegistor[1] = FlagCheck.checkZero(num);
+        flagRegistor[2] = FlagCheck.checkSign(num);
+
     }
 
     private void inc(byte r1) {
@@ -326,6 +440,22 @@ public class VEnv {
                 case "36":
                     this.ori(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
                     SPR[9] += 3;
+                    break;
+                case "37":
+                    this.bz(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "38":
+                    this.bnz(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "39":
+                    this.bc(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "3A":
+                    this.bs(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
                     break;
                 case "3B":
                     this.jmp(memory[SPR[9] + 1], memory[SPR[9] + 2]);
