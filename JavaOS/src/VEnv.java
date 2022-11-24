@@ -1,7 +1,10 @@
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.PriorityQueue;
 import java.util.Scanner;
 
 /**
@@ -35,11 +38,22 @@ public class VEnv {
     Unused      - 4-15*
     */
     
+    //For Phase-1: Creating Arch
     private final short[] GPR = new short[16]; // R0-R15
     private final short[] SPR = new short[16];
     private final boolean[] flagRegistor = new boolean[16];
     private final byte[] memory = new byte[65536]; // memory size should be 64KB 2^16
 
+    //For Phase-2
+    private final PriorityQueue<PCB> readyQ1 = new PriorityQueue<>(15, new CustomComparator()); //0-15
+    private final CircularQueue<PCB> readyQ2 = new CircularQueue<>(15); //16-31
+    private final PriorityQueue<PCB> runQ = new PriorityQueue<>(1);
+    
+    private int runningPages = 0;
+    private final int FRAME_SIZE = 128;
+    private final boolean[] checkPages = new boolean[512];
+    
+    
     public VEnv() {
     }
 
@@ -328,6 +342,11 @@ public class VEnv {
     
     private void readFile(String filename) {
         try {
+            
+            if(filename.endsWith(".bin")){
+                readAndLoadBinFile(filename);
+                return;
+        }
             String line;
             Scanner code;
 
@@ -372,9 +391,82 @@ public class VEnv {
         SPR[2] = codeCounter;
     }
 
+    
+    private void readAndLoadBinFile(String filename){
+        try {
+            
+            FileInputStream fileInputStream = new FileInputStream(new File(filename));
+            byte [] fileCon = fileInputStream.readAllBytes();
+            fileInputStream.close();
+            
+            int priority = fileCon[0];
+            int pid = this.twoBytesToShort(fileCon[1], fileCon[2]);
+            int dataSize = this.twoBytesToShort(fileCon[3], fileCon[4]);
+            int codeSize = fileCon.length - dataSize - 8;
+            
+            if(priority<0 || priority >31) { //Check Priority
+                System.out.println("Priority Out of Bounds");
+                return;
+            }
+            
+            int data_page = checkFreePage();
+            int code_page = checkFreePage();
+            
+            int data_frame = data_page*FRAME_SIZE;
+            int code_frame = code_page*FRAME_SIZE;
+            
+            int startData = 8;
+            for(int i = data_frame; i<data_frame+dataSize; i++){
+                memory[i] = fileCon[startData];
+                startData++;
+            }
+            
+            int startCode = startData;
+            for(int i = code_frame; i<code_frame+codeSize; i++){
+                memory[i] = fileCon[startCode];
+                startCode++;
+            }
+            
+            var dataPT = new PageTable();
+            var codePT = new PageTable();
+            
+            dataPT.add(data_page, data_frame);
+            codePT.add(code_page, code_frame);
+           
+            PCB p = new PCB(pid, priority, "P-"+code_page, codeSize, dataSize, codePT, dataPT);
+            
+            if(priority < 16) // Place in Appropriate Queue.
+                this.readyQ1.add(p); // Priority
+            else
+                this.readyQ2.enqueue(p); //Round-Robin
+            
+        } catch (FileNotFoundException e){
+            System.out.println("File Not Found");
+        } catch (IOException ex) {
+            System.out.println(ex);
+        }
+    }
+    
+    private int checkFreePage(){
+        for(int i = 1; i<checkPages.length; i++){
+                if(!checkPages[i]){
+                    checkPages[i] = true;
+                    this.runningPages++;
+                    return i;
+                }
+            }
+        return -1;
+    }
+    
+    //--------------------------------------------------------------------------
+    
     private void execute() {
-        //SPR[6] is Stack Base
-        SPR[6] = 150; SPR[7] = SPR[6];
+        System.out.println("ReadyQ1: "+this.readyQ1.toString());
+        System.out.println("ReadyQ2: "+this.readyQ2.toString());
+        
+        
+        //SPR[6] is Stack Base //1st page is alloted to stack
+        SPR[6] = 0; SPR[7] = SPR[6];
         
         SPR[9] = SPR[0]; // SPR[9] is PC and SPR[0] is CB
         while (SPR[9] <= SPR[2]) { // Checking PC with CC
@@ -458,8 +550,8 @@ public class VEnv {
                     SPR[9] += 2;
                     break;
                 case "3B":
-                    this.jmp(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
+                    this.jmp(memory[SPR[9] + 2], memory[SPR[9] + 3]); // changed!!!!
+                    SPR[9] += 3;
                     break;
                 case "3C":
                     this.call(memory[SPR[9] + 1], memory[SPR[9] + 2]);
@@ -514,6 +606,9 @@ public class VEnv {
                     break;
                 case "F2": //NOOP: No Operation
                     break;
+                default:
+                    if(SPR[10] != 0)
+                        System.out.println("Invalid Opcode");
             }
 
             SPR[9]++; // moves to next instrcution
