@@ -245,7 +245,7 @@ public class VEnv {
     private void call(byte val1, byte val2){
         SPR[7]++;
         memory[SPR[7]] = (byte) SPR[9]; 
-        SPR[9] = this.twoBytesToShort(val1, val2);
+        SPR[9] = (short)(SPR[0]+this.twoBytesToShort(val1, val2));
     }
     
     private void act(byte val1, byte val2) { //Do the service defined by num
@@ -257,14 +257,14 @@ public class VEnv {
     //Implementation of Memory Instructions-------------------------------------
     private void movl(byte r, byte val1, byte val2){
         short location = this.twoBytesToShort(val1, val2);
-        GPR[r] = memory[location];
-        this.checkData(location);
+        GPR[r] = memory[location+SPR[3]];
+        this.checkData((short)(location+SPR[3]));
     }
     
     private void movs(byte r, byte val1, byte val2){
         short value = GPR[r];
         short location = this.twoBytesToShort(val1, val2);
-        memory[location] = (byte) value;
+        memory[location+SPR[3]] = (byte) value;
         
     }
     //--------------------------------------------------------------------------
@@ -399,7 +399,7 @@ public class VEnv {
     }
 
     
-    private void readAndLoadBinFile(String filename){
+    protected void readAndLoadBinFile(String filename){
         try {
             
             FileInputStream fileInputStream = new FileInputStream(new File(filename));
@@ -418,7 +418,7 @@ public class VEnv {
             
             int data_page = checkFreePage();
             int code_page = checkFreePage();
-            
+ 
             int data_frame = data_page*FRAME_SIZE;
             int code_frame = code_page*FRAME_SIZE;
             
@@ -516,7 +516,7 @@ public class VEnv {
         
 
         SPR[9] = SPR[0]; // SPR[9] is PC and SPR[0] is CB
-        while (SPR[9] <= SPR[1]) { // Checking PC with CL
+        loop: while (SPR[9] <= SPR[1]) { // Checking PC with CL
             SPR[10] = memory[SPR[9]]; //SPR[10] is IR
             String instruction = Converter.byteToHex((byte) SPR[10]);
             if (instruction.contentEquals("F3")) {
@@ -655,8 +655,11 @@ public class VEnv {
                 case "F2": //NOOP: No Operation
                     break;
                 default:
-                    if(SPR[10] != 0)
+                    if(SPR[10] != 0){
                         System.out.println("Invalid Opcode");
+                        break loop;
+                    }
+                    
             }
             
             if(checkStack()){
@@ -665,7 +668,7 @@ public class VEnv {
             
             SPR[9]++; // moves to next instrcution
             //System.out.println(this.toString());
-            //System.out.println(instruction);
+            //System.out.print(instruction +" ");
         }
         
         terminate();
