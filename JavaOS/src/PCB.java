@@ -41,9 +41,14 @@ public class PCB {
         return this.priority;
     }
     
+    public String getName(){
+        return name;
+    }
+    
+    
     @Override
     public String toString(){
-        return String.format("ID: %d | Priority: %d | Name: %s | CodeSize: %d | DataSize: %d | CodePT: %s | DataPT: %s",
+        return String.format("ID: %d | Priority: %d | Name: %s | CodeSize: %d | DataSize: %d | CodePT: %s | DataPT: %s\n",
                 id,priority,name,codeSize,dataSize,codePT,dataPT);
     }
     
@@ -53,6 +58,46 @@ public class PCB {
     
     public short[] getSPR(){
         return this.SPR;
+    }
+    
+    public boolean[] getFlags(){
+        return this.flagReg;
+    }
+    
+    public int [] getcodePage(){
+        return this.codePT.getKeys();
+    }
+    
+    public int [] getdataPage(){
+        return this.dataPT.getKeys();
+    }
+    
+    public int getCodeSize(){
+        return this.codeSize;
+    }
+    
+    public int getdataSize(){
+        return this.dataSize;
+    }
+    
+    public int [] getPages(){
+        int [] codePages = this.getcodePage();
+        int [] dataPages = this.getdataPage();
+        
+        int[] totalPages = new int[codePages.length +dataPages.length];
+        
+        int j = 0;
+        for(int i: codePages){
+            totalPages[j] = i;
+            j++;
+        }
+        
+        for(int i: dataPages){
+            totalPages[j] = i;
+            j++;
+        }
+        return totalPages;
+        
     }
 
 }

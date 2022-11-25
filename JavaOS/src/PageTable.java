@@ -38,4 +38,14 @@ public class PageTable {
     public void add(int p, int f){
         pageTable.put(p, f);
     }
+    
+    public int [] getKeys(){
+        int [] r = new int[this.pageTable.size()];
+        int j = 0;
+        for (Integer i: pageTable.keySet()) {
+            r[j] = i;
+            j++;
+        }
+        return r;
+    }
 }

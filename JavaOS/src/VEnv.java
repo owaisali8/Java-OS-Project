@@ -2,6 +2,7 @@
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.PriorityQueue;
@@ -39,15 +40,15 @@ public class VEnv {
     */
     
     //For Phase-1: Creating Arch
-    private final short[] GPR = new short[16]; // R0-R15
-    private final short[] SPR = new short[16];
-    private final boolean[] flagRegistor = new boolean[16];
+    private short[] GPR = new short[16]; // R0-R15
+    private short[] SPR = new short[16];
+    private boolean[] flagRegistor = new boolean[16];
     private final byte[] memory = new byte[65536]; // memory size should be 64KB 2^16
 
     //For Phase-2
     private final PriorityQueue<PCB> readyQ1 = new PriorityQueue<>(15, new CustomComparator()); //0-15
     private final CircularQueue<PCB> readyQ2 = new CircularQueue<>(15); //16-31
-    private final PriorityQueue<PCB> runQ = new PriorityQueue<>(1);
+    private final PriorityQueue<PCB> runQ = new PriorityQueue<>(1, new CustomComparator());
     
     private int runningPages = 0;
     private final int FRAME_SIZE = 128;
@@ -60,7 +61,6 @@ public class VEnv {
     //constructor for reading and loading the file
     public VEnv(String filename) {
         this.readFile(filename);
-        execute();
     }
 
     @Override
@@ -233,7 +233,13 @@ public class VEnv {
     }
     
     private void jmp(byte val1, byte val2){
-        SPR[9] = this.twoBytesToShort(val1, val2);
+        // Adding code base to offset
+        short addr = (short)(SPR[0]+this.twoBytesToShort(val1, val2));
+        SPR[9] = addr;
+        
+        if(addr<SPR[0] || addr > SPR[1]){
+            System.out.println("Using Area Outside Allocated Place");
+        } 
     }
     
     private void call(byte val1, byte val2){
@@ -252,6 +258,7 @@ public class VEnv {
     private void movl(byte r, byte val1, byte val2){
         short location = this.twoBytesToShort(val1, val2);
         GPR[r] = memory[location];
+        this.checkData(location);
     }
     
     private void movs(byte r, byte val1, byte val2){
@@ -433,7 +440,7 @@ public class VEnv {
             dataPT.add(data_page, data_frame);
             codePT.add(code_page, code_frame);
            
-            PCB p = new PCB(pid, priority, "P-"+code_page, codeSize, dataSize, codePT, dataPT);
+            PCB p = new PCB(pid, priority, filename, codeSize, dataSize, codePT, dataPT);
             
             if(priority < 16) // Place in Appropriate Queue.
                 this.readyQ1.add(p); // Priority
@@ -458,21 +465,62 @@ public class VEnv {
         return -1;
     }
     
+    private boolean checkStack(){
+        if(SPR[7] < 0 || SPR[7] > SPR[8]){ //if counter > limit
+            System.out.println("Stack is Overflowing or Underflowing");
+            return true;
+        }
+        return false;
+    }
+    
+    private void checkData(short addr){
+        if(addr < SPR[3] || addr > SPR[4]){
+            System.out.println("Using data outside allocated place");
+        }
+    }
+    
     //--------------------------------------------------------------------------
     
     private void execute() {
         System.out.println("ReadyQ1: "+this.readyQ1.toString());
         System.out.println("ReadyQ2: "+this.readyQ2.toString());
         
-        
         //SPR[6] is Stack Base //1st page is alloted to stack
-        SPR[6] = 0; SPR[7] = SPR[6];
+        SPR[6] = 0; SPR[7] = SPR[6]; checkPages[0] = true;
         
+        while(!readyQ1.isEmpty() || !readyQ2.isEmpty()){
+            if(!readyQ1.isEmpty()){
+                runQ.add(readyQ1.remove());
+            } else {
+                runQ.add(readyQ2.dequeue());
+            }
+            
+            PCB currPCB = runQ.peek();
+            
+            this.GPR = currPCB.getGPR();
+            this.flagRegistor = currPCB.getFlags();
+            this.SPR = currPCB.getSPR();
+            
+            SPR[0] = (short) (currPCB.getcodePage()[0]* FRAME_SIZE); //CB
+            SPR[1] = (short) (currPCB.getCodeSize() + SPR[0]);      //CL
+            SPR[2] = (short) currPCB.getCodeSize();                 //CC
+            
+            SPR[3] =(short) (currPCB.getdataPage()[0]* FRAME_SIZE); //DB
+            SPR[4] = (short) (currPCB.getdataSize() + SPR[3]);      //DL
+            SPR[5] = (short) currPCB.getdataSize();                 //DC
+            
+            SPR[6] = 0;             //SB
+            SPR[7] = SPR[6];        //SC
+            SPR[8] = FRAME_SIZE-1;   //SL
+            
+        
+
         SPR[9] = SPR[0]; // SPR[9] is PC and SPR[0] is CB
-        while (SPR[9] <= SPR[2]) { // Checking PC with CC
+        while (SPR[9] <= SPR[1]) { // Checking PC with CL
             SPR[10] = memory[SPR[9]]; //SPR[10] is IR
             String instruction = Converter.byteToHex((byte) SPR[10]);
             if (instruction.contentEquals("F3")) {
+                System.out.println(currPCB.getName()+" proc has ended -> F3");
                 break;
             }
 
@@ -534,28 +582,28 @@ public class VEnv {
                     SPR[9] += 3;
                     break;
                 case "37":
-                    this.bz(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
+                    this.bz(memory[SPR[9] + 2], memory[SPR[9] + 3]); //Changes
+                    SPR[9]--;
                     break;
                 case "38":
-                    this.bnz(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
+                    this.bnz(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
                     break;
                 case "39":
-                    this.bc(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
+                    this.bc(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
                     break;
                 case "3A":
-                    this.bs(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
+                    this.bs(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
                     break;
                 case "3B":
-                    this.jmp(memory[SPR[9] + 2], memory[SPR[9] + 3]); // changed!!!!
-                    SPR[9] += 3;
+                    this.jmp(memory[SPR[9] + 2], memory[SPR[9] + 3]); 
+                    SPR[9]--; //!!!
                     break;
                 case "3C":
-                    this.call(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
+                    this.call(memory[SPR[9] + 2], memory[SPR[9] + 3]);// changed!!!!
+                    SPR[9]--;
                     break;
                 case "3D":
                     this.act(memory[SPR[9] + 1], memory[SPR[9] + 2]);
@@ -610,10 +658,60 @@ public class VEnv {
                     if(SPR[10] != 0)
                         System.out.println("Invalid Opcode");
             }
-
+            
+            if(checkStack()){
+                return;
+            }
+            
             SPR[9]++; // moves to next instrcution
+            //System.out.println(this.toString());
+            //System.out.println(instruction);
+        }
+        
+        terminate();
+    
         }
     }
+    
+    public void executeAll(){
+        try{
+            execute();
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            System.out.println("Invalid Registor Code or Memory Address");
+        } catch(ArithmeticException ex){
+            System.out.println("Error: Divide by Zero");
+        }
+    }
+    
+    private void terminate(){
+        //Printing PCB and state of Venv
+        PCB endPCB = runQ.remove();
+        System.out.println("\nPCB Terminated: "+endPCB);
+        System.out.println(Arrays.toString(this.getMem()));
+        System.out.println(this.toString());
+        System.out.println(this.showFlags());
+        
+        //free page...
+        int [] pages = endPCB.getPages();
+        
+        for(int i: pages){
+            this.checkPages[i] = false;
+            this.runningPages--;
+        }
+        
+        try {
+            FileWriter file = new FileWriter("Memory Dump("+endPCB.getName()+").txt");
+            file.append("Memory Dump\n");
+            file.append("\nPCB Terminated: "+endPCB+"\n");
+            file.append(Arrays.toString(this.getMem()));
+            file.append(this.toString());
+            file.append(this.showFlags());
+            file.close();
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+    
     //--------------------------------------------------------------------------
 
 }

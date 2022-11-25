@@ -20,6 +20,7 @@ public class Main {
         // For phase 2
         
         VEnv main = new VEnv("p5.bin");
+        main.executeAll();
         //System.out.println(main.showMem(500));
     }
 }

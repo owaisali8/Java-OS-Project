@@ -65,6 +65,7 @@ class CircularQueue<E> {
         return (number == 0);
     }
 
+    @Override
     public String toString(){
         String s = "[ ";
         for(Object obj: this.circularQueueAr){
