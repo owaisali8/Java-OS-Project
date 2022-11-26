@@ -464,10 +464,10 @@ public class VEnv {
             
             
             for(int i: data_pages)
-               dataPT.add(i, data_frame);
+               dataPT.add(i, i*FRAME_SIZE);
             
             for(int i: code_pages)
-                codePT.add(i, code_frame);
+                codePT.add(i, i*FRAME_SIZE);
        
             PCB p = new PCB(pid, priority, filename, codeSize, dataSize, codePT, dataPT);
             
@@ -522,35 +522,41 @@ public class VEnv {
         SPR[6] = 0; SPR[7] = SPR[6]; checkPages[0] = true;
         
         int lastExecTime = 0;
+        boolean roundRobin;
         
         while(!readyQ1.isEmpty() || !readyQ2.isEmpty()){
             if(!readyQ1.isEmpty()){
                 runQ.add(readyQ1.remove());
+                roundRobin = false;
             } else {
                 runQ.add(readyQ2.dequeue());
+                roundRobin = true;
             }
             
             PCB currPCB = runQ.peek();
-            
+            if(currPCB.getRunTwice()){
             this.GPR = currPCB.getGPR();
             this.flagRegistor = currPCB.getFlags();
             this.SPR = currPCB.getSPR();
-            
+            }
+            else{
             SPR[0] = (short) (currPCB.getcodePage()[0]* FRAME_SIZE); //CB
             SPR[1] = (short) (currPCB.getCodeSize() + SPR[0]);      //CL
             SPR[2] = (short) currPCB.getCodeSize();                 //CC
             
-            SPR[3] =(short) (currPCB.getdataPage()[0]* FRAME_SIZE); //DB
+            SPR[3] = (short) (currPCB.getdataPage()[0]* FRAME_SIZE);//DB
             SPR[4] = (short) (currPCB.getdataSize() + SPR[3]);      //DL
             SPR[5] = (short) currPCB.getdataSize();                 //DC
             
             SPR[6] = 0;             //SB
             SPR[7] = SPR[6];        //SC
             SPR[8] = FRAME_SIZE-1;   //SL
+            }
             
         int startTime = (int)System.nanoTime();
+        int quantum = 0;
 
-        SPR[9] = SPR[0]; // SPR[9] is PC and SPR[0] is CB
+        if(!currPCB.getRunTwice())SPR[9] = SPR[0]; // SPR[9] is PC and SPR[0] is CB
         loop: while (SPR[9] <= SPR[1]) { // Checking PC with CL
             SPR[10] = memory[SPR[9]]; //SPR[10] is IR
             String instruction = Converter.byteToHex((byte) SPR[10]);
@@ -558,7 +564,7 @@ public class VEnv {
                 System.out.println(currPCB.getName()+" proc has ended -> F3");
                 break;
             }
-
+            
             switch (instruction) {
                 case "16":
                     this.mov(memory[SPR[9] + 1], memory[SPR[9] + 2]);
@@ -617,7 +623,7 @@ public class VEnv {
                     SPR[9] += 3;
                     break;
                 case "37":
-                    this.bz(memory[SPR[9] + 2], memory[SPR[9] + 3]); //Changes
+                    this.bz(memory[SPR[9] + 2], memory[SPR[9] + 3]); 
                     SPR[9]--;
                     break;
                 case "38":
@@ -634,10 +640,10 @@ public class VEnv {
                     break;
                 case "3B":
                     this.jmp(memory[SPR[9] + 2], memory[SPR[9] + 3]); 
-                    SPR[9]--; //!!!
+                    SPR[9]--; 
                     break;
                 case "3C":
-                    this.call(memory[SPR[9] + 2], memory[SPR[9] + 3]);// changed!!!!
+                    this.call(memory[SPR[9] + 2], memory[SPR[9] + 3]);
                     SPR[9]--;
                     break;
                 case "3D":
@@ -703,15 +709,28 @@ public class VEnv {
             
             SPR[9]++; // moves to next instrcution
             //System.out.println(this.toString());
-            //System.out.print(instruction +" ");
+            //System.out.print(instruction +"\n");
+            quantum++;
+            
+            if(quantum == 4 && roundRobin){
+                PCB p = runQ.remove();
+                p.setRunTwice(true);
+                p.setGPR(this.GPR);
+                p.setSPR(this.SPR);
+                p.setFlags(this.flagRegistor);
+                readyQ2.enqueue(p);
+                break;
+            }
+            
         }
-        
+        if(!runQ.isEmpty()){
         int endTime = (int)System.nanoTime();
         int execTime = endTime-startTime;
         currPCB.setExecTime(execTime);
         currPCB.setWaitTime(lastExecTime);
         lastExecTime += execTime;
         this.terminate();
+        }
     
         }
     }

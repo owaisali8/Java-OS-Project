@@ -17,6 +17,7 @@ public class PCB {
     private int waitTime;
     private int execTime;
     private boolean[] flagReg = new boolean[16];
+    private boolean runTwice;
 
     public boolean isTerminated() {
         return false;
@@ -114,6 +115,26 @@ public class PCB {
     
     public int getWaitTime(){
         return this.waitTime;
+    }
+    
+    public void setGPR(short[] arr){
+        this.GPR = arr;
+    }
+    
+    public void setSPR(short[] arr){
+        this.SPR = arr;
+    }
+    
+    public void setFlags(boolean[] arr){
+        this.flagReg = arr; 
+    }
+    
+    public void setRunTwice(boolean b){
+        this.runTwice = b;
+    }
+    
+    public boolean getRunTwice(){
+        return runTwice;
     }
 
 }
