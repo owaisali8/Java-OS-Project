@@ -437,7 +437,7 @@ public class VEnv {
             while(reqDataPages*FRAME_SIZE < dataSize)
                 reqDataPages++;
             
-            while(reqCodePages*FRAME_SIZE < dataSize)
+            while(reqCodePages*FRAME_SIZE < codeSize)
                 reqCodePages++;
             
             
