@@ -28,8 +28,7 @@ public class VEnv {
     Stack limit (SL)          - 8
     Program counter (PC)      - 9
     Instruction Register (IR) - 10
-    */
-    
+     */
     // Flag Reigstors
     /* 
     Carry       - 0
@@ -37,8 +36,7 @@ public class VEnv {
     Sign        - 2
     Overflow    - 3
     Unused      - 4-15*
-    */
-    
+     */
     //For Phase-1: Creating Arch
     private short[] GPR = new short[16]; // R0-R15
     private short[] SPR = new short[16];
@@ -49,12 +47,11 @@ public class VEnv {
     private final PriorityQueue<PCB> readyQ1 = new PriorityQueue<>(15, new CustomComparator()); //0-15
     private final CircularQueue<PCB> readyQ2 = new CircularQueue<>(15); //16-31
     private final PriorityQueue<PCB> runQ = new PriorityQueue<>(1, new CustomComparator());
-    
+
     private int allocPages = 0;
     private final int FRAME_SIZE = 128;
     private final boolean[] checkPages = new boolean[512];
-    
-    
+
     public VEnv() {
     }
 
@@ -67,11 +64,11 @@ public class VEnv {
     public String toString() {
         return "\nGPR:\n" + Arrays.toString(GPR) + "\nSPR:\n" + Arrays.toString(SPR);
     }
-    
+
     public String showFlags() {
         return "\nFlags:\n" + Arrays.toString(flagRegistor);
     }
-    
+
     //showing our memory contents
     public String showMem(int n) {
         String s = "Memory:\n[";
@@ -80,14 +77,14 @@ public class VEnv {
         }
         return s + "]";
     }
-    
+
     public String showMem() {
         String s = "Memory:\n[";
         int j = 0;
         for (int i = 0; i < memory.length; i++) {
             s += memory[i] + ", ";
             j++;
-            if(j == 4096){
+            if (j == 4096) {
                 j = 0;
                 s += "\n";
             }
@@ -102,15 +99,15 @@ public class VEnv {
     public short[] getSPR() {
         return this.SPR;
     }
-    
-    public byte[] getMem(){
+
+    public byte[] getMem() {
         return this.memory;
     }
-    
-    public boolean[] getFlags(){
+
+    public boolean[] getFlags() {
         return this.flagRegistor;
     }
-    
+
     // Implentation of register to registor instructions -----------------------
     private void mov(byte r1, byte r2) {
         GPR[r1] = GPR[r2];
@@ -176,7 +173,7 @@ public class VEnv {
 
     private void addi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] + this.twoBytesToShort(val1, val2));
-        
+
         int num = (GPR[r1] + this.twoBytesToShort(val1, val2));
         flagRegistor[1] = FlagCheck.checkZero(num);
         flagRegistor[2] = FlagCheck.checkSign(num);
@@ -185,7 +182,7 @@ public class VEnv {
 
     private void subi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] - this.twoBytesToShort(val1, val2));
-        
+
         int num = (GPR[r1] - this.twoBytesToShort(val1, val2));
         flagRegistor[1] = FlagCheck.checkZero(num);
         flagRegistor[2] = FlagCheck.checkSign(num);
@@ -194,7 +191,7 @@ public class VEnv {
 
     private void muli(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] * this.twoBytesToShort(val1, val2));
-        
+
         int num = (GPR[r1] * this.twoBytesToShort(val1, val2));
         flagRegistor[1] = FlagCheck.checkZero(num);
         flagRegistor[2] = FlagCheck.checkSign(num);
@@ -203,7 +200,7 @@ public class VEnv {
 
     private void divi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] / this.twoBytesToShort(val1, val2));
-        
+
         int num = (GPR[r1] / this.twoBytesToShort(val1, val2));
         flagRegistor[1] = FlagCheck.checkZero(num);
         flagRegistor[2] = FlagCheck.checkSign(num);
@@ -212,7 +209,7 @@ public class VEnv {
 
     private void andi(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] & this.twoBytesToShort(val1, val2));
-        
+
         int num = (GPR[r1] & this.twoBytesToShort(val1, val2));
         flagRegistor[1] = FlagCheck.checkZero(num);
         flagRegistor[2] = FlagCheck.checkSign(num);
@@ -221,47 +218,55 @@ public class VEnv {
 
     private void ori(byte r1, byte val1, byte val2) {
         GPR[r1] = (short) (GPR[r1] | this.twoBytesToShort(val1, val2));
-        
+
         int num = (GPR[r1] | this.twoBytesToShort(val1, val2));
         flagRegistor[1] = FlagCheck.checkZero(num);
         flagRegistor[2] = FlagCheck.checkSign(num);
         flagRegistor[3] = FlagCheck.checkOverflow(num);
     }
-    
-    private void bz(byte val1, byte val2){ //Check flag register, and jump to offset
+
+    private void bz(byte val1, byte val2) { //Check flag register, and jump to offset
         //if zero bit is ON: then jmp
-        if(this.flagRegistor[1]) this.jmp(val1, val2);
+        if (this.flagRegistor[1]) {
+            this.jmp(val1, val2);
+        }
     }
-    
-    private void bnz(byte val1, byte val2){
+
+    private void bnz(byte val1, byte val2) {
         //if zero bit is OFF: then jmp
-        if(!this.flagRegistor[1]) this.jmp(val1, val2);
+        if (!this.flagRegistor[1]) {
+            this.jmp(val1, val2);
+        }
     }
-    
-    private void bc(byte val1, byte val2){
-        if(!this.flagRegistor[0]) this.jmp(val1, val2);
+
+    private void bc(byte val1, byte val2) {
+        if (!this.flagRegistor[0]) {
+            this.jmp(val1, val2);
+        }
     }
-    
-    private void bs(byte val1, byte val2){
-        if(!this.flagRegistor[2]) this.jmp(val1, val2);
+
+    private void bs(byte val1, byte val2) {
+        if (!this.flagRegistor[2]) {
+            this.jmp(val1, val2);
+        }
     }
-    
-    private void jmp(byte val1, byte val2){
+
+    private void jmp(byte val1, byte val2) {
         // Adding code base to offset
-        short addr = (short)(SPR[0]+this.twoBytesToShort(val1, val2));
+        short addr = (short) (SPR[0] + this.twoBytesToShort(val1, val2));
         SPR[9] = addr;
-        
-        if(addr<SPR[0] || addr > SPR[1]){
+
+        if (addr < SPR[0] || addr > SPR[1]) {
             System.out.println("Using Area Outside Allocated Place");
-        } 
+        }
     }
-    
-    private void call(byte val1, byte val2){
+
+    private void call(byte val1, byte val2) {
         SPR[7]++;
-        memory[SPR[7]] = (byte) SPR[9]; 
-        SPR[9] = (short)(SPR[0]+this.twoBytesToShort(val1, val2));
+        memory[SPR[7]] = (byte) SPR[9];
+        SPR[9] = (short) (SPR[0] + this.twoBytesToShort(val1, val2));
     }
-    
+
     private void act(byte val1, byte val2) { //Do the service defined by num
         //No service is mentioned 
         this.twoBytesToShort(val1, val2);
@@ -269,24 +274,25 @@ public class VEnv {
 
     //--------------------------------------------------------------------------
     //Implementation of Memory Instructions-------------------------------------
-    private void movl(byte r, byte val1, byte val2){
+    private void movl(byte r, byte val1, byte val2) {
         short location = this.twoBytesToShort(val1, val2);
-        GPR[r] = memory[location+SPR[3]];
-        this.checkData((short)(location+SPR[3]));
+        GPR[r] = memory[location + SPR[3]];
+        this.checkData((short) (location + SPR[3]));
     }
-    
-    private void movs(byte r, byte val1, byte val2){
+
+    private void movs(byte r, byte val1, byte val2) {
         short value = GPR[r];
         short location = this.twoBytesToShort(val1, val2);
-        memory[location+SPR[3]] = (byte) value;
-        
+        memory[location + SPR[3]] = (byte) value;
+
     }
+
     //--------------------------------------------------------------------------
     //Implementation of Single Operand Instructions-----------------------------
     private void shl(byte r1) {
         short num = (short) (GPR[r1] << 1);
         GPR[r1] = num;
-        
+
         flagRegistor[0] = FlagCheck.checkCarry(num);
         flagRegistor[1] = FlagCheck.checkZero(num);
         flagRegistor[2] = FlagCheck.checkSign(num);
@@ -295,7 +301,7 @@ public class VEnv {
     private void shr(byte r1) {
         short num = (short) (GPR[r1] >> 1);
         GPR[r1] = num;
-                
+
         flagRegistor[0] = FlagCheck.checkCarry(num);
         flagRegistor[1] = FlagCheck.checkZero(num);
         flagRegistor[2] = FlagCheck.checkSign(num);
@@ -305,7 +311,7 @@ public class VEnv {
     private void rtl(byte r1) {
         short num = (short) (Integer.rotateLeft(GPR[r1], 1));
         GPR[r1] = num;
-                
+
         flagRegistor[0] = FlagCheck.checkCarry(num);
         flagRegistor[1] = FlagCheck.checkZero(num);
         flagRegistor[2] = FlagCheck.checkSign(num);
@@ -315,7 +321,7 @@ public class VEnv {
     private void rtr(byte r1) {
         short num = (short) (Integer.rotateRight(GPR[r1], 1));
         GPR[r1] = num;
-        
+
         flagRegistor[0] = FlagCheck.checkCarry(num);
         flagRegistor[1] = FlagCheck.checkZero(num);
         flagRegistor[2] = FlagCheck.checkSign(num);
@@ -334,61 +340,56 @@ public class VEnv {
         //SPR[7] is Stack Counter (SC)
         SPR[7]++;
         memory[SPR[7]] = (byte) GPR[r1];
-    }  
+    }
 
     private void pop(byte r1) {
         GPR[r1] = memory[SPR[7]];
         memory[SPR[7]] = 0;
         SPR[7]--;
-   
+
     }
 
     //--------------------------------------------------------------------------
-    
     //Implementation of No Operand Instructions---------------------------------
-    
     private void returnPC() {
         SPR[9] = memory[SPR[7]];
         memory[SPR[7]] = 0;
         SPR[7]--;
     }
-    
-    //--------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------
     //Load-Decode-Execute-------------------------------------------------------
-    public final void loadIntoMemoryAndExecute(String line){//for testing purposes
+    public final void loadIntoMemoryAndExecute(String line) {//for testing purposes
         this.loadIntoMemory(line);
         this.execute();
     }
-    
+
     private void readFile(String filename) {
         try {
-            
-            if(filename.endsWith(".bin")){
+
+            if (filename.endsWith(".bin")) {
                 readAndLoadBinFile(filename);
                 return;
-        }
+            }
             String line;
             Scanner code;
 
             code = new Scanner(new File(filename));
             line = code.nextLine();
             code.close();
-            
-            if(filename.endsWith(".byte")){
+
+            if (filename.endsWith(".byte")) {
                 loadByteFile(line);
-            }
-            
-            else {
+            } else {
                 loadIntoMemory(line);
             }
-            
+
         } catch (FileNotFoundException e) {
             System.out.println("File not found.");
         }
     }
 
-    private void loadByteFile(String line){
+    private void loadByteFile(String line) {
         short codeCounter = 0;
         SPR[0] = codeCounter; //CB
         SPR[2] = codeCounter; //CC
@@ -397,9 +398,9 @@ public class VEnv {
             memory[codeCounter] = Byte.parseByte(b);
             codeCounter++;
         }
-        SPR[2] = codeCounter;   
+        SPR[2] = codeCounter;
     }
-    
+
     private void loadIntoMemory(String line) {
         short codeCounter = 0;
         SPR[0] = codeCounter; //CB
@@ -412,375 +413,379 @@ public class VEnv {
         SPR[2] = codeCounter;
     }
 
-    
-    protected void readAndLoadBinFile(String filename){
+    protected void readAndLoadBinFile(String filename) {
         try {
-            
+
             FileInputStream fileInputStream = new FileInputStream(new File(filename));
-            byte [] fileCon = fileInputStream.readAllBytes();
+            byte[] fileCon = fileInputStream.readAllBytes();
             fileInputStream.close();
-            
+
             int priority = fileCon[0];
             int pid = this.twoBytesToShort(fileCon[1], fileCon[2]);
             int dataSize = this.twoBytesToShort(fileCon[3], fileCon[4]);
             int codeSize = fileCon.length - dataSize - 8;
-            
-            if(priority<0 || priority >31) { //Check Priority
+
+            if (priority < 0 || priority > 31) { //Check Priority
                 System.out.println("Priority Out of Bounds");
                 return;
             }
-            
-            
+
             int reqDataPages = 1;
             int reqCodePages = 1;
-            
-            while(reqDataPages*FRAME_SIZE < dataSize)
+
+            while (reqDataPages * FRAME_SIZE < dataSize) {
                 reqDataPages++;
-            
-            while(reqCodePages*FRAME_SIZE < codeSize)
+            }
+
+            while (reqCodePages * FRAME_SIZE < codeSize) {
                 reqCodePages++;
-            
-            
-            int [] data_pages = checkFreePage(reqDataPages);
-            int [] code_pages = checkFreePage(reqCodePages);
- 
-            int data_frame = data_pages[0]*FRAME_SIZE;
-            int code_frame = code_pages[0]*FRAME_SIZE;
-            
+            }
+
+            int[] data_pages = checkFreePage(reqDataPages);
+            int[] code_pages = checkFreePage(reqCodePages);
+
+            int data_frame = data_pages[0] * FRAME_SIZE;
+            int code_frame = code_pages[0] * FRAME_SIZE;
+
             int startData = 8;
-            for(int i = data_frame; i<data_frame+dataSize; i++){
+            for (int i = data_frame; i < data_frame + dataSize; i++) {
                 memory[i] = fileCon[startData];
                 startData++;
             }
-            
+
             int startCode = startData;
-            for(int i = code_frame; i<code_frame+codeSize; i++){
+            for (int i = code_frame; i < code_frame + codeSize; i++) {
                 memory[i] = fileCon[startCode];
                 startCode++;
             }
-            
+
             PageTable dataPT = new PageTable();
             PageTable codePT = new PageTable();
-            
-            
-            for(int i: data_pages)
-               dataPT.add(i, i*FRAME_SIZE);
-            
-            for(int i: code_pages)
-                codePT.add(i, i*FRAME_SIZE);
-       
+
+            for (int i : data_pages) {
+                dataPT.add(i, i * FRAME_SIZE);
+            }
+
+            for (int i : code_pages) {
+                codePT.add(i, i * FRAME_SIZE);
+            }
+
             PCB p = new PCB(pid, priority, filename, codeSize, dataSize, codePT, dataPT);
-            
-            if(priority < 16) // Place in Appropriate Queue.
+
+            if (priority < 16) // Place in Appropriate Queue.
+            {
                 this.readyQ1.add(p); // Priority
-            else
+            } else {
                 this.readyQ2.enqueue(p); //Round-Robin
-            
-        } catch (FileNotFoundException e){
+            }
+        } catch (FileNotFoundException e) {
             System.out.println("File Not Found");
         } catch (IOException ex) {
             System.out.println(ex);
         }
     }
-    
-    private int[] checkFreePage(int n){
-        int [] arr = new int[n];
+
+    private int[] checkFreePage(int n) {
+        int[] arr = new int[n];
         int j = 0;
-        for(int i = 1; i<checkPages.length; i++){
-                if(!checkPages[i]){
-                    checkPages[i] = true;
-                    this.allocPages++;
-                    arr[j] = i;
-                    j++;
-                    if(j == n) break;
+        for (int i = 1; i < checkPages.length; i++) {
+            if (!checkPages[i]) {
+                checkPages[i] = true;
+                this.allocPages++;
+                arr[j] = i;
+                j++;
+                if (j == n) {
+                    break;
                 }
             }
+        }
         return arr;
     }
-    
-    private boolean checkStack(){
-        if(SPR[7] < 0 || SPR[7] > SPR[8]){ //if counter > limit
+
+    private boolean checkStack() {
+        if (SPR[7] < 0 || SPR[7] > SPR[8]) { //if counter > limit
             System.out.println("Stack is Overflowing or Underflowing");
             return true;
         }
         return false;
     }
-    
-    private void checkData(short addr){
-        if(addr < SPR[3] || addr > SPR[4]){
+
+    private void checkData(short addr) {
+        if (addr < SPR[3] || addr > SPR[4]) {
             System.out.println("Using data outside allocated place");
         }
     }
-    
+
     //--------------------------------------------------------------------------
-    
     private void execute() {
-        System.out.println("ReadyQ1:\n"+this.readyQ1.toString());
-        System.out.println("ReadyQ2:\n"+this.readyQ2.toString());
-        
+        System.out.println("ReadyQ1:\n" + this.readyQ1.toString());
+        System.out.println("ReadyQ2:\n" + this.readyQ2.toString());
+
         //SPR[6] is Stack Base //1st page is alloted to stack
-        SPR[6] = 0; SPR[7] = SPR[6]; checkPages[0] = true;
-        
+        SPR[6] = 0;
+        SPR[7] = SPR[6];
+        checkPages[0] = true;
+
         int lastExecTime = 0;
         boolean roundRobin;
-        
-        while(!readyQ1.isEmpty() || !readyQ2.isEmpty()){
-            if(!readyQ1.isEmpty()){
+
+        while (!readyQ1.isEmpty() || !readyQ2.isEmpty()) {
+            if (!readyQ1.isEmpty()) {
                 runQ.add(readyQ1.remove());
                 roundRobin = false;
             } else {
                 runQ.add(readyQ2.dequeue());
                 roundRobin = true;
             }
-            
-            PCB currPCB = runQ.peek();
-            if(currPCB.getRunTwice()){
-            this.GPR = currPCB.getGPR();
-            this.flagRegistor = currPCB.getFlags();
-            this.SPR = currPCB.getSPR();
-            }
-            else{
-            SPR[0] = (short) (currPCB.getcodePage()[0]* FRAME_SIZE); //CB
-            SPR[1] = (short) (currPCB.getCodeSize() + SPR[0]);      //CL
-            SPR[2] = (short) currPCB.getCodeSize();                 //CC
-            
-            SPR[3] = (short) (currPCB.getdataPage()[0]* FRAME_SIZE);//DB
-            SPR[4] = (short) (currPCB.getdataSize() + SPR[3]);      //DL
-            SPR[5] = (short) currPCB.getdataSize();                 //DC
-            
-            SPR[6] = 0;             //SB
-            SPR[7] = SPR[6];        //SC
-            SPR[8] = FRAME_SIZE-1;   //SL
-            }
-            
-        int startTime = (int)System.nanoTime();
-        int quantum = 0;
 
-        if(!currPCB.getRunTwice())SPR[9] = SPR[0]; // SPR[9] is PC and SPR[0] is CB
-        loop: while (SPR[9] <= SPR[1]) { // Checking PC with CL
-            SPR[10] = memory[SPR[9]]; //SPR[10] is IR
-            String instruction = Converter.byteToHex((byte) SPR[10]);
-            if (instruction.contentEquals("F3")) {
-                System.out.println(currPCB.getName()+" proc has ended -> F3");
-                break;
+            PCB currPCB = runQ.peek();
+            if (currPCB.getRunTwice()) {
+                this.GPR = currPCB.getGPR();
+                this.flagRegistor = currPCB.getFlags();
+                this.SPR = currPCB.getSPR();
+            } else {
+                SPR[0] = (short) (currPCB.getcodePage()[0] * FRAME_SIZE); //CB
+                SPR[1] = (short) (currPCB.getCodeSize() + SPR[0]);      //CL
+                SPR[2] = (short) currPCB.getCodeSize();                 //CC
+
+                SPR[3] = (short) (currPCB.getdataPage()[0] * FRAME_SIZE);//DB
+                SPR[4] = (short) (currPCB.getdataSize() + SPR[3]);      //DL
+                SPR[5] = (short) currPCB.getdataSize();                 //DC
+
+                SPR[6] = 0;             //SB
+                SPR[7] = SPR[6];        //SC
+                SPR[8] = FRAME_SIZE - 1;   //SL
             }
-            
-            switch (instruction) {
-                case "16":
-                    this.mov(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
-                    break;
-                case "17":
-                    this.add(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
-                    break;
-                case "18":
-                    this.sub(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
-                    break;
-                case "19":
-                    this.mul(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
-                    break;
-                case "1A":
-                    this.div(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
-                    break;
-                case "1B":
-                    this.and(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
-                    break;
-                case "1C":
-                    this.or(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
-                    break;
-                case "30":
-                    this.movi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9] += 3;
-                    break;
-                case "31":
-                    this.addi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9] += 3;
-                    break;
-                case "32":
-                    this.subi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9] += 3;
-                    break;
-                case "33":
-                    this.muli(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9] += 3;
-                    break;
-                case "34":
-                    this.divi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9] += 3;
-                    break;
-                case "35":
-                    this.andi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9] += 3;
-                    break;
-                case "36":
-                    this.ori(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9] += 3;
-                    break;
-                case "37":
-                    this.bz(memory[SPR[9] + 2], memory[SPR[9] + 3]); 
-                    SPR[9]--;
-                    break;
-                case "38":
-                    this.bnz(memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9]--;
-                    break;
-                case "39":
-                    this.bc(memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9]--;
-                    break;
-                case "3A":
-                    this.bs(memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9]--;
-                    break;
-                case "3B":
-                    this.jmp(memory[SPR[9] + 2], memory[SPR[9] + 3]); 
-                    SPR[9]--; 
-                    break;
-                case "3C":
-                    this.call(memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9]--;
-                    break;
-                case "3D":
-                    this.act(memory[SPR[9] + 1], memory[SPR[9] + 2]);
-                    SPR[9] += 2;
-                    break;
-                case "51":
-                    this.movl(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9] += 3;
-                    break;
-                case "52":
-                    this.movs(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
-                    SPR[9] += 3;
-                    break;
-                case "71": 
-                    this.shl(memory[SPR[9]+1]);
-                    SPR[9]++;
-                    break;
-                case "72": 
-                    this.shr(memory[SPR[9]+1]);
-                    SPR[9]++;
-                    break;
-                case "73": 
-                    this.rtl(memory[SPR[9]+1]);
-                    SPR[9]++;
-                    break;
-                case "74": 
-                    this.rtr(memory[SPR[9]+1]);
-                    SPR[9]++;
-                    break;
-                case "75": 
-                    this.inc(memory[SPR[9]+1]);
-                    SPR[9]++;
-                    break;
-                case "76": 
-                    this.dec(memory[SPR[9]+1]);
-                    SPR[9]++;
-                    break;
-                case "77":
-                    this.push(memory[SPR[9]+1]);
-                    SPR[9]++;
-                    break;
-                case "78":
-                    this.pop(memory[SPR[9]+1]);
-                    SPR[9]++;
-                    break;
-                case "F1":
-                    this.returnPC();
-                    break;
-                case "F2": //NOOP: No Operation
-                    break;
-                default:
-                    if(SPR[10] != 0){
-                        System.out.println("Invalid Opcode");
-                        break loop;
-                    }
-                    
+
+            int startTime = (int) System.nanoTime();
+            int quantum = 0;
+
+            if (!currPCB.getRunTwice()) {
+                SPR[9] = SPR[0]; // SPR[9] is PC and SPR[0] is CB
             }
-            
-            if(checkStack()){
-                return;
+            loop:
+            while (SPR[9] <= SPR[1]) { // Checking PC with CL
+                SPR[10] = memory[SPR[9]]; //SPR[10] is IR
+                String instruction = Converter.byteToHex((byte) SPR[10]);
+                if (instruction.contentEquals("F3")) {
+                    System.out.println(currPCB.getName() + " proc has ended -> F3");
+                    break;
+                }
+
+                switch (instruction) {
+                    case "16":
+                        this.mov(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                        SPR[9] += 2;
+                        break;
+                    case "17":
+                        this.add(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                        SPR[9] += 2;
+                        break;
+                    case "18":
+                        this.sub(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                        SPR[9] += 2;
+                        break;
+                    case "19":
+                        this.mul(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                        SPR[9] += 2;
+                        break;
+                    case "1A":
+                        this.div(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                        SPR[9] += 2;
+                        break;
+                    case "1B":
+                        this.and(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                        SPR[9] += 2;
+                        break;
+                    case "1C":
+                        this.or(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                        SPR[9] += 2;
+                        break;
+                    case "30":
+                        this.movi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9] += 3;
+                        break;
+                    case "31":
+                        this.addi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9] += 3;
+                        break;
+                    case "32":
+                        this.subi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9] += 3;
+                        break;
+                    case "33":
+                        this.muli(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9] += 3;
+                        break;
+                    case "34":
+                        this.divi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9] += 3;
+                        break;
+                    case "35":
+                        this.andi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9] += 3;
+                        break;
+                    case "36":
+                        this.ori(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9] += 3;
+                        break;
+                    case "37":
+                        this.bz(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9]--;
+                        break;
+                    case "38":
+                        this.bnz(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9]--;
+                        break;
+                    case "39":
+                        this.bc(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9]--;
+                        break;
+                    case "3A":
+                        this.bs(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9]--;
+                        break;
+                    case "3B":
+                        this.jmp(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9]--;
+                        break;
+                    case "3C":
+                        this.call(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9]--;
+                        break;
+                    case "3D":
+                        this.act(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                        SPR[9] += 2;
+                        break;
+                    case "51":
+                        this.movl(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9] += 3;
+                        break;
+                    case "52":
+                        this.movs(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                        SPR[9] += 3;
+                        break;
+                    case "71":
+                        this.shl(memory[SPR[9] + 1]);
+                        SPR[9]++;
+                        break;
+                    case "72":
+                        this.shr(memory[SPR[9] + 1]);
+                        SPR[9]++;
+                        break;
+                    case "73":
+                        this.rtl(memory[SPR[9] + 1]);
+                        SPR[9]++;
+                        break;
+                    case "74":
+                        this.rtr(memory[SPR[9] + 1]);
+                        SPR[9]++;
+                        break;
+                    case "75":
+                        this.inc(memory[SPR[9] + 1]);
+                        SPR[9]++;
+                        break;
+                    case "76":
+                        this.dec(memory[SPR[9] + 1]);
+                        SPR[9]++;
+                        break;
+                    case "77":
+                        this.push(memory[SPR[9] + 1]);
+                        SPR[9]++;
+                        break;
+                    case "78":
+                        this.pop(memory[SPR[9] + 1]);
+                        SPR[9]++;
+                        break;
+                    case "F1":
+                        this.returnPC();
+                        break;
+                    case "F2": //NOOP: No Operation
+                        break;
+                    default:
+                        if (SPR[10] != 0) {
+                            System.out.println("Invalid Opcode");
+                            break loop;
+                        }
+
+                }
+
+                if (checkStack()) {
+                    return;
+                }
+
+                SPR[9]++; // moves to next instrcution
+                
+                quantum++;
+
+                if (quantum == 4 && roundRobin) {
+                    PCB p = runQ.remove();
+                    p.setRunTwice(true);
+                    p.setGPR(this.GPR);
+                    p.setSPR(this.SPR);
+                    p.setFlags(this.flagRegistor);
+                    readyQ2.enqueue(p);
+                    break;
+                }
+
             }
-            
-            SPR[9]++; // moves to next instrcution
-            //System.out.println(this.toString());
-            //System.out.print(instruction +"\n");
-            quantum++;
-            
-            if(quantum == 4 && roundRobin){
-                PCB p = runQ.remove();
-                p.setRunTwice(true);
-                p.setGPR(this.GPR);
-                p.setSPR(this.SPR);
-                p.setFlags(this.flagRegistor);
-                readyQ2.enqueue(p);
-                break;
+            if (!runQ.isEmpty()) {
+                int endTime = (int) System.nanoTime();
+                int execTime = endTime - startTime;
+                currPCB.setExecTime(execTime);
+                currPCB.setWaitTime(lastExecTime);
+                lastExecTime += execTime;
+                this.terminate();
             }
-            
-        }
-        if(!runQ.isEmpty()){
-        int endTime = (int)System.nanoTime();
-        int execTime = endTime-startTime;
-        currPCB.setExecTime(execTime);
-        currPCB.setWaitTime(lastExecTime);
-        lastExecTime += execTime;
-        this.terminate();
-        }
-    
+
         }
     }
-    
-    public void executeAll(){
-        try{
+
+    public void executeAll() {
+        try {
             execute();
         } catch (ArrayIndexOutOfBoundsException ex) {
             System.out.println("Invalid Registor Code or Memory Address");
-        } catch(ArithmeticException ex){
+        } catch (ArithmeticException ex) {
             System.out.println("Error: Divide by Zero");
         }
     }
-    
-    private void terminate(){
+
+    private void terminate() {
         //Printing PCB and state of Venv
         PCB endPCB = runQ.remove();
-        System.out.println("\nPCB Terminated: "+endPCB);
-        System.out.println("Execution Time: " + endPCB.getExecTime()/1000000.0+"ms");
-        System.out.println("Waiting Time: " + endPCB.getWaitTime()/1000000.0+"ms");
+        System.out.println("\nPCB Terminated: " + endPCB);
+        System.out.println("Execution Time: " + endPCB.getExecTime() / 1000000.0 + "ms");
+        System.out.println("Waiting Time: " + endPCB.getWaitTime() / 1000000.0 + "ms");
         System.out.println(this.showMem());
         System.out.println(this.toString());
         System.out.println(this.showFlags());
-        
+
         //free page...
-        int [] pages = endPCB.getPages();
-        
-        for(int i: pages){
+        int[] pages = endPCB.getPages();
+
+        for (int i : pages) {
             this.checkPages[i] = false;
             this.allocPages--;
         }
-        
-        System.out.println("Allocated Pages: "+allocPages);
-        
+
+        System.out.println("Allocated Pages: " + allocPages);
+
         try {
-            FileWriter file = new FileWriter("Memory Dump("+endPCB.getName()+").txt");
+            FileWriter file = new FileWriter("Memory Dump(" + endPCB.getName() + ").txt");
             file.append("Memory Dump\n");
-            file.append("\nExecution Time: " + endPCB.getExecTime()/1000000.0+"ms");
-            file.append("\nWaiting Time: " + endPCB.getWaitTime()/1000000.0+"ms");
-            file.append("\nPCB Terminated: "+endPCB+"\n");
+            file.append("\nExecution Time: " + endPCB.getExecTime() / 1000000.0 + "ms");
+            file.append("\nWaiting Time: " + endPCB.getWaitTime() / 1000000.0 + "ms");
+            file.append("\nPCB Terminated: " + endPCB + "\n");
             file.append(this.showMem());
             file.append(this.toString());
             file.append(this.showFlags());
-            file.append("\nAllocated Pages: "+allocPages);
+            file.append("\nAllocated Pages: " + allocPages);
             file.close();
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
     }
-    
-    //--------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------
 }

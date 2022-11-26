@@ -21,11 +21,11 @@ public class PageTable {
             System.out.println("page " + i + ": frame " + pageTable.get(i));
         }
     }
-    
+
     @Override
-     public String toString() {
+    public String toString() {
         String s = "";
-        for (Integer i: pageTable.keySet()) {
+        for (Integer i : pageTable.keySet()) {
             s += "Page " + i + " -> Frame " + pageTable.get(i);
         }
         return s;
@@ -34,15 +34,15 @@ public class PageTable {
     public int size() {
         return pageTable.size();
     }
-    
-    public void add(int p, int f){
+
+    public void add(int p, int f) {
         pageTable.put(p, f);
     }
-    
-    public int [] getKeys(){
-        int [] r = new int[this.pageTable.size()];
+
+    public int[] getKeys() {
+        int[] r = new int[this.pageTable.size()];
         int j = 0;
-        for (Integer i: pageTable.keySet()) {
+        for (Integer i : pageTable.keySet()) {
             r[j] = i;
             j++;
         }

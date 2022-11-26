@@ -21,5 +21,5 @@ public class Converter {
         var s = new String(hexDigits);
         return s.toUpperCase();
     }
-    
+
 }

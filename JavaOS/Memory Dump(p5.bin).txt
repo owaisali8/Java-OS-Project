@@ -1,7 +1,7 @@
 Memory Dump
 
-Execution Time: 0.352494ms
-Waiting Time: 2.58706ms
+Execution Time: 0.091183ms
+Waiting Time: 2.178119ms
 PCB Terminated: ID: 4609 | Priority: 2 | Name: p5.bin | CodeSize: 68 | DataSize: 30 | CodePT: Page 2 -> Frame 256 | DataPT: Page 1 -> Frame 128
 
 Memory:

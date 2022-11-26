@@ -1,7 +1,3 @@
-
-import java.util.Arrays;
-
-
 class CircularQueue<E> {
 
     private E[] circularQueueAr;
@@ -66,13 +62,13 @@ class CircularQueue<E> {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         String s = "[ ";
-        for(Object obj: this.circularQueueAr){
-            if(obj != null){
-                s += obj.toString() +",";
+        for (Object obj : this.circularQueueAr) {
+            if (obj != null) {
+                s += obj.toString() + ",";
             }
         }
-        return s.substring(0, s.length()-1) + "]";
+        return s.substring(0, s.length() - 1) + "]";
     }
 }

@@ -1,7 +1,7 @@
 Memory Dump
 
-Execution Time: 0.091578ms
-Waiting Time: 3.925589ms
+Execution Time: 0.093945ms
+Waiting Time: 2.721662ms
 PCB Terminated: ID: 1537 | Priority: 22 | Name: sfull.bin | CodeSize: 107 | DataSize: 512 | CodePT: Page 35 -> Frame 4480 | DataPT: Page 32 -> Frame 4096Page 31 -> Frame 3968Page 34 -> Frame 4352Page 33 -> Frame 4224
 
 Memory:

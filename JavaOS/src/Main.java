@@ -3,9 +3,9 @@
  *
  * @author Owais, Hamza and Yunus
  */
-
 public class Main {
-    public static void main(String[] args){
+
+    public static void main(String[] args) {
         /* For phase 1 Files
         
         var main = new VEnv("p0.txt");
@@ -15,8 +15,8 @@ public class Main {
         main = new VEnv("p1.byte");
         System.out.println(main);
         System.out.println(main.showMem(20));
-        */
-        
+         */
+
         // For phase 2
         // All the files are loaded into memory and then executed according to their priority.
         VEnv main = new VEnv();

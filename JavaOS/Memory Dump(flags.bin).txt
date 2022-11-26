@@ -1,7 +1,7 @@
 Memory Dump
 
-Execution Time: 0.063946ms
-Waiting Time: 3.363494ms
+Execution Time: 0.064736ms
+Waiting Time: 2.511666ms
 PCB Terminated: ID: 1793 | Priority: 16 | Name: flags.bin | CodeSize: 513 | DataSize: 512 | CodePT: Page 30 -> Frame 3840Page 29 -> Frame 3712Page 28 -> Frame 3584Page 27 -> Frame 3456Page 26 -> Frame 3328 | DataPT: Page 25 -> Frame 3200Page 24 -> Frame 3072Page 23 -> Frame 2944Page 22 -> Frame 2816
 
 Memory:

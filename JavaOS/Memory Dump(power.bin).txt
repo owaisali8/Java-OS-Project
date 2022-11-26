@@ -1,6 +1,6 @@
 Memory Dump
 
-Execution Time: 1.69576ms
+Execution Time: 1.770758ms
 Waiting Time: 0.0ms
 PCB Terminated: ID: 257 | Priority: 1 | Name: power.bin | CodeSize: 57 | DataSize: 4 | CodePT: Page 6 -> Frame 768 | DataPT: Page 5 -> Frame 640
 

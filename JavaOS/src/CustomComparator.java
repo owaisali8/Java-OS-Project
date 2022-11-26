@@ -5,19 +5,17 @@ class CustomComparator implements Comparator<PCB> {
 
     @Override
     public int compare(PCB p1, PCB p2) {
-        
-        int value =  p1.getPriority();
+
+        int value = p1.getPriority();
         int value2 = p2.getPriority();
-   
+
         if (value > value2) {
             return 1;
-        }
-        else if (value < value2) {
+        } else if (value < value2) {
             return -1;
-        }
-        else {
+        } else {
             return 0;
         }
     }
-    
+
 }

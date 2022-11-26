@@ -27,8 +27,7 @@ public class PCB {
     }
 
     public PCB(int id, int priority, String name, int codeSize, int dataSize,
-             PageTable codePT, PageTable dataPT)
-    {
+            PageTable codePT, PageTable dataPT) {
         this.priority = priority;
         this.id = id;
         this.name = name;
@@ -41,99 +40,98 @@ public class PCB {
     public int getPriority() {
         return this.priority;
     }
-    
-    public String getName(){
+
+    public String getName() {
         return name;
     }
-    
-    
+
     @Override
-    public String toString(){
+    public String toString() {
         return String.format("ID: %d | Priority: %d | Name: %s | CodeSize: %d | DataSize: %d | CodePT: %s | DataPT: %s\n",
-                id,priority,name,codeSize,dataSize,codePT,dataPT);
+                id, priority, name, codeSize, dataSize, codePT, dataPT);
     }
-    
-    public short[] getGPR(){
+
+    public short[] getGPR() {
         return this.GPR;
     }
-    
-    public short[] getSPR(){
+
+    public short[] getSPR() {
         return this.SPR;
     }
-    
-    public boolean[] getFlags(){
+
+    public boolean[] getFlags() {
         return this.flagReg;
     }
-    
-    public int [] getcodePage(){
+
+    public int[] getcodePage() {
         return this.codePT.getKeys();
     }
-    
-    public int [] getdataPage(){
+
+    public int[] getdataPage() {
         return this.dataPT.getKeys();
     }
-    
-    public int getCodeSize(){
+
+    public int getCodeSize() {
         return this.codeSize;
     }
-    
-    public int getdataSize(){
+
+    public int getdataSize() {
         return this.dataSize;
     }
-    
-    public int [] getPages(){
-        int [] codePages = this.getcodePage();
-        int [] dataPages = this.getdataPage();
-        
-        int[] totalPages = new int[codePages.length +dataPages.length];
-        
+
+    public int[] getPages() {
+        int[] codePages = this.getcodePage();
+        int[] dataPages = this.getdataPage();
+
+        int[] totalPages = new int[codePages.length + dataPages.length];
+
         int j = 0;
-        for(int i: codePages){
+        for (int i : codePages) {
             totalPages[j] = i;
             j++;
         }
-        
-        for(int i: dataPages){
+
+        for (int i : dataPages) {
             totalPages[j] = i;
             j++;
         }
         return totalPages;
-        
+
     }
-    
-    public void setExecTime(int t){
+
+    public void setExecTime(int t) {
         this.execTime = t;
     }
-    
-    public int getExecTime(){
+
+    public int getExecTime() {
         return this.execTime;
     }
-    
-    public void setWaitTime(int t){
+
+    public void setWaitTime(int t) {
         this.waitTime = t;
     }
-    
-    public int getWaitTime(){
+
+    public int getWaitTime() {
         return this.waitTime;
     }
-    
-    public void setGPR(short[] arr){
+
+    public void setGPR(short[] arr) {
         this.GPR = arr;
     }
-    
-    public void setSPR(short[] arr){
+
+    public void setSPR(short[] arr) {
         this.SPR = arr;
     }
-    
-    public void setFlags(boolean[] arr){
-        this.flagReg = arr; 
+
+    public void setFlags(boolean[] arr) {
+        this.flagReg = arr;
     }
-    
-    public void setRunTwice(boolean b){
+
+    public void setRunTwice(boolean b) {
         this.runTwice = b;
     }
-    
-    public boolean getRunTwice(){
+
+    public boolean getRunTwice() {
         return runTwice;
     }
 
