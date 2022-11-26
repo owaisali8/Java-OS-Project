@@ -50,7 +50,7 @@ public class VEnv {
     private final CircularQueue<PCB> readyQ2 = new CircularQueue<>(15); //16-31
     private final PriorityQueue<PCB> runQ = new PriorityQueue<>(1, new CustomComparator());
     
-    private int runningPages = 0;
+    private int allocPages = 0;
     private final int FRAME_SIZE = 128;
     private final boolean[] checkPages = new boolean[512];
     
@@ -77,6 +77,20 @@ public class VEnv {
         String s = "Memory:\n[";
         for (int i = 0; i <= n; i++) {
             s += memory[i] + ", ";
+        }
+        return s + "]";
+    }
+    
+    public String showMem() {
+        String s = "Memory:\n[";
+        int j = 0;
+        for (int i = 0; i < memory.length; i++) {
+            s += memory[i] + ", ";
+            j++;
+            if(j == 4096){
+                j = 0;
+                s += "\n";
+            }
         }
         return s + "]";
     }
@@ -416,11 +430,20 @@ public class VEnv {
                 return;
             }
             
-            int data_page = checkFreePage();
-            int code_page = checkFreePage();
+            
+            int reqCodePages = 1;
+            
+                reqDataPages++;
+            
+            while(reqCodePages*FRAME_SIZE < dataSize)
+                reqCodePages++;
+            
+            
+            int [] data_pages = checkFreePage(reqDataPages);
+            int [] code_pages = checkFreePage(reqCodePages);
  
-            int data_frame = data_page*FRAME_SIZE;
-            int code_frame = code_page*FRAME_SIZE;
+            int data_frame = data_pages[0]*FRAME_SIZE;
+            int code_frame = code_pages[0]*FRAME_SIZE;
             
             int startData = 8;
             for(int i = data_frame; i<data_frame+dataSize; i++){
@@ -434,12 +457,16 @@ public class VEnv {
                 startCode++;
             }
             
-            var dataPT = new PageTable();
-            var codePT = new PageTable();
+            PageTable dataPT = new PageTable();
+            PageTable codePT = new PageTable();
             
-            dataPT.add(data_page, data_frame);
-            codePT.add(code_page, code_frame);
-           
+            
+            for(int i: data_pages)
+               dataPT.add(i, data_frame);
+            
+            for(int i: code_pages)
+                codePT.add(i, code_frame);
+       
             PCB p = new PCB(pid, priority, filename, codeSize, dataSize, codePT, dataPT);
             
             if(priority < 16) // Place in Appropriate Queue.
@@ -454,15 +481,19 @@ public class VEnv {
         }
     }
     
-    private int checkFreePage(){
+    private int[] checkFreePage(int n){
+        int [] arr = new int[n];
+        int j = 0;
         for(int i = 1; i<checkPages.length; i++){
                 if(!checkPages[i]){
                     checkPages[i] = true;
-                    this.runningPages++;
-                    return i;
+                    this.allocPages++;
+                    arr[j] = i;
+                    j++;
+                    if(j == n) break;
                 }
             }
-        return -1;
+        return arr;
     }
     
     private boolean checkStack(){
@@ -482,11 +513,13 @@ public class VEnv {
     //--------------------------------------------------------------------------
     
     private void execute() {
-        System.out.println("ReadyQ1: "+this.readyQ1.toString());
-        System.out.println("ReadyQ2: "+this.readyQ2.toString());
+        System.out.println("ReadyQ1:\n"+this.readyQ1.toString());
+        System.out.println("ReadyQ2:\n"+this.readyQ2.toString());
         
         //SPR[6] is Stack Base //1st page is alloted to stack
         SPR[6] = 0; SPR[7] = SPR[6]; checkPages[0] = true;
+        
+        int lastExecTime = 0;
         
         while(!readyQ1.isEmpty() || !readyQ2.isEmpty()){
             if(!readyQ1.isEmpty()){
@@ -513,7 +546,7 @@ public class VEnv {
             SPR[7] = SPR[6];        //SC
             SPR[8] = FRAME_SIZE-1;   //SL
             
-        
+        int startTime = (int)System.nanoTime();
 
         SPR[9] = SPR[0]; // SPR[9] is PC and SPR[0] is CB
         loop: while (SPR[9] <= SPR[1]) { // Checking PC with CL
@@ -671,7 +704,12 @@ public class VEnv {
             //System.out.print(instruction +" ");
         }
         
-        terminate();
+        int endTime = (int)System.nanoTime();
+        int execTime = endTime-startTime;
+        currPCB.setExecTime(execTime);
+        currPCB.setWaitTime(lastExecTime);
+        lastExecTime += execTime;
+        this.terminate();
     
         }
     }
@@ -690,7 +728,9 @@ public class VEnv {
         //Printing PCB and state of Venv
         PCB endPCB = runQ.remove();
         System.out.println("\nPCB Terminated: "+endPCB);
-        System.out.println(Arrays.toString(this.getMem()));
+        System.out.println("Execution Time: " + endPCB.getExecTime()/1000000.0+"ms");
+        System.out.println("Waiting Time: " + endPCB.getWaitTime()/1000000.0+"ms");
+        System.out.println(this.showMem());
         System.out.println(this.toString());
         System.out.println(this.showFlags());
         
@@ -699,16 +739,21 @@ public class VEnv {
         
         for(int i: pages){
             this.checkPages[i] = false;
-            this.runningPages--;
+            this.allocPages--;
         }
+        
+        System.out.println("Allocated Pages: "+allocPages);
         
         try {
             FileWriter file = new FileWriter("Memory Dump("+endPCB.getName()+").txt");
             file.append("Memory Dump\n");
+            file.append("\nExecution Time: " + endPCB.getExecTime()/1000000.0+"ms");
+            file.append("\nWaiting Time: " + endPCB.getWaitTime()/1000000.0+"ms");
             file.append("\nPCB Terminated: "+endPCB+"\n");
-            file.append(Arrays.toString(this.getMem()));
+            file.append(this.showMem());
             file.append(this.toString());
             file.append(this.showFlags());
+            file.append("\nAllocated Pages: "+allocPages);
             file.close();
         } catch (IOException ex) {
             System.out.println(ex.getMessage());

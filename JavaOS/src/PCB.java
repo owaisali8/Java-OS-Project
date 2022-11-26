@@ -14,8 +14,8 @@ public class PCB {
     private PageTable dataPT;
     private short[] GPR = new short[16];
     private short[] SPR = new short[16];
-    private float waitTime;
-    private float execTime;
+    private int waitTime;
+    private int execTime;
     private boolean[] flagReg = new boolean[16];
 
     public boolean isTerminated() {
@@ -98,6 +98,22 @@ public class PCB {
         }
         return totalPages;
         
+    }
+    
+    public void setExecTime(int t){
+        this.execTime = t;
+    }
+    
+    public int getExecTime(){
+        return this.execTime;
+    }
+    
+    public void setWaitTime(int t){
+        this.waitTime = t;
+    }
+    
+    public int getWaitTime(){
+        return this.waitTime;
     }
 
 }

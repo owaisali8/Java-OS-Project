@@ -20,14 +20,13 @@ public class Main {
         // For phase 2
         
         VEnv main = new VEnv();
-        //main.readAndLoadBinFile("p5.bin");
-        //main.readAndLoadBinFile("p5 - Copy.bin");
-        //main.readAndLoadBinFile("power.bin");
+        main.readAndLoadBinFile("p5.bin");
+        main.readAndLoadBinFile("p5 - Copy.bin");
+        main.readAndLoadBinFile("power.bin");
         //main.readAndLoadBinFile("noop.bin");
-        //main.readAndLoadBinFile("large0.bin");
-        //main.readAndLoadBinFile("flags.bin");
+        main.readAndLoadBinFile("large0.bin");
+        main.readAndLoadBinFile("flags.bin");
         //main.readAndLoadBinFile("sfull.bin");
         main.executeAll();
-        //System.out.println(main.showMem(500));
     }
 }
