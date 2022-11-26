@@ -431,8 +431,10 @@ public class VEnv {
             }
             
             
+            int reqDataPages = 1;
             int reqCodePages = 1;
             
+            while(reqDataPages*FRAME_SIZE < dataSize)
                 reqDataPages++;
             
             while(reqCodePages*FRAME_SIZE < dataSize)
