@@ -19,14 +19,18 @@ public class Main {
 
         // For phase 2
         // All the files are loaded into memory and then executed according to their priority.
-        VEnv main = new VEnv();
-        main.readAndLoadBinFile("p5.bin");
-        main.readAndLoadBinFile("p5 - Copy.bin");
-        main.readAndLoadBinFile("power.bin");
-        main.readAndLoadBinFile("noop.bin");
-        main.readAndLoadBinFile("large0.bin");
-        main.readAndLoadBinFile("flags.bin");
-        main.readAndLoadBinFile("sfull.bin");
-        main.executeAll();
+//        VEnv main = new VEnv();
+//        main.readAndLoadBinFile("p5.bin");
+//        main.readAndLoadBinFile("p5 - Copy.bin");
+//        main.readAndLoadBinFile("power.bin");
+//        main.readAndLoadBinFile("noop.bin");
+//        main.readAndLoadBinFile("large0.bin");
+//        main.readAndLoadBinFile("flags.bin");
+//        main.readAndLoadBinFile("sfull.bin");
+//        main.executeAll();
+            
+//        For Phase 3
+          CLI main = new CLI();
+          main.run();
     }
 }

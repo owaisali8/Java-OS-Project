@@ -134,5 +134,9 @@ public class PCB {
     public boolean getRunTwice() {
         return runTwice;
     }
+    
+    public int getID(){
+        return this.id;
+    }
 
 }

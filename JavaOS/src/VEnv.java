@@ -478,6 +478,7 @@ public class VEnv {
             } else {
                 this.readyQ2.enqueue(p); //Round-Robin
             }
+            System.out.println("Process ID: "+pid);
         } catch (FileNotFoundException e) {
             System.out.println("File Not Found");
         } catch (IOException ex) {
@@ -785,6 +786,22 @@ public class VEnv {
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
+    }
+    
+    //For CLI:
+    
+    protected String shutdown(){
+        String str = "Killed Processes:\n";
+        
+        while(!readyQ1.isEmpty()){
+            str += readyQ1.remove().getID() +"\n";
+        }
+        
+        while(!readyQ2.isEmpty()){
+            str += readyQ2.dequeue().getID() +"\n";
+        }
+        
+        return str;
     }
 
     //--------------------------------------------------------------------------
