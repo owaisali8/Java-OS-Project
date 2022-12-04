@@ -52,6 +52,9 @@ public class VEnv {
     private final int FRAME_SIZE = 128;
     private final boolean[] checkPages = new boolean[512];
 
+    //For Phase-3
+    private final PriorityQueue<PCB> blockedQ = new PriorityQueue<>(15, new CustomComparator());
+
     public VEnv() {
     }
 
@@ -478,7 +481,7 @@ public class VEnv {
             } else {
                 this.readyQ2.enqueue(p); //Round-Robin
             }
-            System.out.println("Process ID: "+pid);
+            System.out.println("Process ID: " + pid);
         } catch (FileNotFoundException e) {
             System.out.println("File Not Found");
         } catch (IOException ex) {
@@ -540,23 +543,7 @@ public class VEnv {
             }
 
             PCB currPCB = runQ.peek();
-            if (currPCB.getRunTwice()) {
-                this.GPR = currPCB.getGPR();
-                this.flagRegistor = currPCB.getFlags();
-                this.SPR = currPCB.getSPR();
-            } else {
-                SPR[0] = (short) (currPCB.getcodePage()[0] * FRAME_SIZE); //CB
-                SPR[1] = (short) (currPCB.getCodeSize() + SPR[0]);      //CL
-                SPR[2] = (short) currPCB.getCodeSize();                 //CC
-
-                SPR[3] = (short) (currPCB.getdataPage()[0] * FRAME_SIZE);//DB
-                SPR[4] = (short) (currPCB.getdataSize() + SPR[3]);      //DL
-                SPR[5] = (short) currPCB.getdataSize();                 //DC
-
-                SPR[6] = 0;             //SB
-                SPR[7] = SPR[6];        //SC
-                SPR[8] = FRAME_SIZE - 1;   //SL
-            }
+            this.setRegistors(currPCB);
 
             int startTime = (int) System.nanoTime();
             int quantum = 0;
@@ -716,7 +703,7 @@ public class VEnv {
                 }
 
                 SPR[9]++; // moves to next instrcution
-                
+
                 quantum++;
 
                 if (quantum == 4 && roundRobin) {
@@ -787,21 +774,504 @@ public class VEnv {
             System.out.println(ex.getMessage());
         }
     }
-    
-    //For CLI:
-    
-    protected String shutdown(){
+
+    //--------------------------------------------------------------------------
+    //For CLI commands:
+    protected String shutdown() {
+        if (readyQ1.isEmpty() && readyQ2.isEmpty()) {
+            return "";
+        }
         String str = "Killed Processes:\n";
-        
-        while(!readyQ1.isEmpty()){
-            str += readyQ1.remove().getID() +"\n";
+
+        while (!readyQ1.isEmpty()) {
+            str += readyQ1.remove().getID() + "\n";
         }
-        
-        while(!readyQ2.isEmpty()){
-            str += readyQ2.dequeue().getID() +"\n";
+
+        while (!readyQ2.isEmpty()) {
+            str += readyQ2.dequeue().getID() + "\n";
         }
-        
+
         return str;
+    }
+
+    protected void executeOnce(int pid) {
+        PCB p = searchAndRemovePCB(pid);
+        if (p == null) {
+            return;
+        } else {
+            runQ.add(p);
+        }
+
+        SPR[6] = 0;
+        SPR[7] = SPR[6];
+        checkPages[0] = true;
+
+        int lastExecTime = 0;
+        PCB currPCB = runQ.peek();
+        this.setRegistors(currPCB);
+        int startTime = (int) System.nanoTime();
+
+        if (!currPCB.getRunTwice()) {
+            SPR[9] = SPR[0]; // SPR[9] is PC and SPR[0] is CB
+        }
+
+        loop:
+        while (SPR[9] <= SPR[1]) { // Checking PC with CL
+            SPR[10] = memory[SPR[9]]; //SPR[10] is IR
+            String instruction = Converter.byteToHex((byte) SPR[10]);
+            if (instruction.contentEquals("F3")) {
+                System.out.println(currPCB.getName() + " proc has ended -> F3");
+                break;
+            }
+
+            switch (instruction) {
+                case "16":
+                    this.mov(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "17":
+                    this.add(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "18":
+                    this.sub(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "19":
+                    this.mul(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "1A":
+                    this.div(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "1B":
+                    this.and(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "1C":
+                    this.or(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "30":
+                    this.movi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "31":
+                    this.addi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "32":
+                    this.subi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "33":
+                    this.muli(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "34":
+                    this.divi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "35":
+                    this.andi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "36":
+                    this.ori(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "37":
+                    this.bz(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "38":
+                    this.bnz(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "39":
+                    this.bc(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "3A":
+                    this.bs(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "3B":
+                    this.jmp(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "3C":
+                    this.call(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "3D":
+                    this.act(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "51":
+                    this.movl(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "52":
+                    this.movs(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "71":
+                    this.shl(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "72":
+                    this.shr(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "73":
+                    this.rtl(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "74":
+                    this.rtr(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "75":
+                    this.inc(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "76":
+                    this.dec(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "77":
+                    this.push(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "78":
+                    this.pop(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "F1":
+                    this.returnPC();
+                    break;
+                case "F2": //NOOP: No Operation
+                    break;
+                default:
+                    if (SPR[10] != 0) {
+                        System.out.println("Invalid Opcode");
+                        break loop;
+                    }
+
+            }
+
+            if (checkStack()) {
+                return;
+            }
+
+            SPR[9]++; // moves to next instrcution
+        }
+
+        if (!runQ.isEmpty()) {
+            int endTime = (int) System.nanoTime();
+            int execTime = endTime - startTime;
+            currPCB.setExecTime(execTime);
+            currPCB.setWaitTime(lastExecTime);
+            this.terminate();
+        }
+
+    }
+
+    protected PCB searchAndRemovePCB(int pid) {
+        for (PCB p : readyQ1) {
+            if (p.getID() == pid) {
+                readyQ1.remove(p);
+                return p;
+            }
+        }
+
+        for (PCB p : readyQ2.toPCBArray()) {
+            if (p.getID() == pid) {
+                readyQ2.remove((PCB) p);
+                return (PCB) p;
+            }
+        }
+
+        return null;
+    }
+
+    private void setRegistors(PCB currPCB) {
+
+        if (currPCB.getRunTwice()) {
+            this.GPR = currPCB.getGPR();
+            this.flagRegistor = currPCB.getFlags();
+            this.SPR = currPCB.getSPR();
+        } else {
+            SPR[0] = (short) (currPCB.getcodePage()[0] * FRAME_SIZE); //CB
+            SPR[1] = (short) (currPCB.getCodeSize() + SPR[0]);      //CL
+            SPR[2] = (short) currPCB.getCodeSize();                 //CC
+
+            SPR[3] = (short) (currPCB.getdataPage()[0] * FRAME_SIZE);//DB
+            SPR[4] = (short) (currPCB.getdataSize() + SPR[3]);      //DL
+            SPR[5] = (short) currPCB.getdataSize();                 //DC
+
+            SPR[6] = 0;             //SB
+            SPR[7] = SPR[6];        //SC
+            SPR[8] = FRAME_SIZE - 1;   //SL
+        }
+
+    }
+
+    protected void clone(int pid) {
+        for (PCB p : readyQ1) {
+            if (p.getID() == pid) {
+                readyQ1.add(p);
+                return;
+            }
+        }
+
+        for (PCB p : readyQ2.toPCBArray()) {
+            if (p.getID() == pid) {
+                readyQ2.enqueue((PCB) p);
+                return;
+            }
+        }
+        System.out.println("Process not found.");
+    }
+
+    protected void block(int pid) {
+        PCB p = searchAndRemovePCB(pid);
+        if (p != null) {
+            blockedQ.add(p);
+            System.out.println("Process " + pid + " added to Blocked Queue");
+        } else {
+            System.out.println("Process not found");
+        }
+    }
+
+    protected void unblock(int pid) {
+        PCB ubPCB = null;
+        for (PCB p : blockedQ) {
+            if (p.getID() == pid) {
+                blockedQ.remove(p);
+                ubPCB = p;
+                break;
+            }
+        }
+        if (ubPCB == null) {
+            System.out.println("Process not found.");
+            return;
+        }
+        if (ubPCB.getPriority() < 16) // Place in Appropriate Queue.
+        {
+            this.readyQ1.add(ubPCB); // Priority
+        } else {
+            this.readyQ2.enqueue(ubPCB); //Round-Robin
+        }
+        System.out.println("Process " + pid + " added to Ready Queue");
+    }
+
+    protected void debugOnce(int pid) {
+        PCB p = searchAndRemovePCB(pid);
+        if (p == null) {
+            return;
+        } else {
+            runQ.add(p);
+        }
+
+        SPR[6] = 0;
+        SPR[7] = SPR[6];
+        checkPages[0] = true;
+
+        PCB currPCB = runQ.peek();
+        this.setRegistors(currPCB);
+
+        if (!currPCB.getRunTwice()) {
+            SPR[9] = SPR[0]; // SPR[9] is PC and SPR[0] is CB
+        }
+
+        wloop:
+        while (SPR[9] <= SPR[1]) { // Checking PC with CL
+            SPR[10] = memory[SPR[9]]; //SPR[10] is IR
+            String instruction = Converter.byteToHex((byte) SPR[10]);
+            if (instruction.contentEquals("F3")) {
+                System.out.println(currPCB.getName() + " proc has ended -> F3");
+                this.terminate();
+                break;
+            }
+
+            switch (instruction) {
+                case "16":
+                    this.mov(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "17":
+                    this.add(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "18":
+                    this.sub(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "19":
+                    this.mul(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "1A":
+                    this.div(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "1B":
+                    this.and(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "1C":
+                    this.or(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "30":
+                    this.movi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "31":
+                    this.addi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "32":
+                    this.subi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "33":
+                    this.muli(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "34":
+                    this.divi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "35":
+                    this.andi(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "36":
+                    this.ori(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "37":
+                    this.bz(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "38":
+                    this.bnz(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "39":
+                    this.bc(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "3A":
+                    this.bs(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "3B":
+                    this.jmp(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "3C":
+                    this.call(memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9]--;
+                    break;
+                case "3D":
+                    this.act(memory[SPR[9] + 1], memory[SPR[9] + 2]);
+                    SPR[9] += 2;
+                    break;
+                case "51":
+                    this.movl(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "52":
+                    this.movs(memory[SPR[9] + 1], memory[SPR[9] + 2], memory[SPR[9] + 3]);
+                    SPR[9] += 3;
+                    break;
+                case "71":
+                    this.shl(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "72":
+                    this.shr(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "73":
+                    this.rtl(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "74":
+                    this.rtr(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "75":
+                    this.inc(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "76":
+                    this.dec(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "77":
+                    this.push(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "78":
+                    this.pop(memory[SPR[9] + 1]);
+                    SPR[9]++;
+                    break;
+                case "F1":
+                    this.returnPC();
+                    break;
+                case "F2": //NOOP: No Operation
+                    break;
+                default:
+                    if (SPR[10] != 0) {
+                        System.out.println("Invalid Opcode");
+                        break wloop;
+                    }
+
+            }
+
+            if (checkStack()) {
+                return;
+            }
+
+            SPR[9]++; // moves to next instrcution
+            System.out.println("One instruction executed:\n"+this.toString());
+            System.out.println("Instruction: "+instruction);
+            currPCB.setSPR(SPR);
+            currPCB.setGPR(GPR);
+            currPCB.setFlags(this.flagRegistor);
+            currPCB.setRunTwice(true);
+            runQ.remove();
+
+            if (currPCB.getPriority() < 16) // Place in Appropriate Queue.
+            {
+                this.readyQ1.add(currPCB); // Priority
+            } else {
+                this.readyQ2.enqueue(currPCB); //Round-Robin
+            }
+            break;
+        }
+
+    }
+    
+    protected void debugAll(){
+        for(PCB p : readyQ1.toArray(new PCB[5])){
+            if(p != null)
+            this.debugOnce(p.getID());
+        }
+        
+        for(PCB p : readyQ2.toPCBArray()){
+            if(p != null)
+            this.debugOnce(p.getID());
+        }
+        
+        System.out.println("One instruction of all the loaded processes executed.");
+        
     }
 
     //--------------------------------------------------------------------------

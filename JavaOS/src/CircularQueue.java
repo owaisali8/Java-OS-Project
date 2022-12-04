@@ -1,4 +1,8 @@
-class CircularQueue<E> {
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
+class CircularQueue<E> implements Iterable{
 
     private E[] circularQueueAr;
     private int maxSize;   //Maximum Size of Circular Queue
@@ -70,5 +74,24 @@ class CircularQueue<E> {
             }
         }
         return s.substring(0, s.length() - 1) + "]";
+    }
+    
+    public List<E> toPCBArray(){
+        return Arrays.asList(circularQueueAr);
+    }
+    
+    public void remove(E obj){
+        for(int i = 0; i<this.number; i++){
+            E comp = this.dequeue();
+            if(obj.equals(comp)) break;
+            else{
+                this.enqueue(comp);
+            }
+        }
+    }
+    
+    @Override
+    public Iterator<E> iterator() {
+        return Arrays.asList(circularQueueAr).iterator();
     }
 }

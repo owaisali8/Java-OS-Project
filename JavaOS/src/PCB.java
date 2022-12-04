@@ -138,5 +138,9 @@ public class PCB {
     public int getID(){
         return this.id;
     }
+    
+    public boolean equals(int pid){
+        return this.getID() == pid;
+    }
 
 }

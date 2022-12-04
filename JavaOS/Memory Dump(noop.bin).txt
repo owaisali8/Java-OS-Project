@@ -1,7 +1,7 @@
 Memory Dump
 
-Execution Time: 0.14526ms
-Waiting Time: 2.576402ms
+Execution Time: 0.757894ms
+Waiting Time: 4.915251ms
 PCB Terminated: ID: 3841 | Priority: 31 | Name: noop.bin | CodeSize: 513 | DataSize: 0 | CodePT: Page 10 -> Frame 1280Page 9 -> Frame 1152Page 8 -> Frame 1024Page 12 -> Frame 1536Page 11 -> Frame 1408 | DataPT: Page 7 -> Frame 896
 
 Memory:

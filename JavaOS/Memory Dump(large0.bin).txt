@@ -1,7 +1,7 @@
 Memory Dump
 
-Execution Time: 0.407361ms
-Waiting Time: 1.770758ms
+Execution Time: 1.012892ms
+Waiting Time: 1.946838ms
 PCB Terminated: ID: 1025 | Priority: 2 | Name: large0.bin | CodeSize: 513 | DataSize: 512 | CodePT: Page 21 -> Frame 2688Page 20 -> Frame 2560Page 19 -> Frame 2432Page 18 -> Frame 2304Page 17 -> Frame 2176 | DataPT: Page 16 -> Frame 2048Page 15 -> Frame 1920Page 14 -> Frame 1792Page 13 -> Frame 1664
 
 Memory:
