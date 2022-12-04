@@ -1278,17 +1278,20 @@ public class VEnv {
 
     }
 
-    protected void showProcess() {
+    protected String showProcess() {
         System.out.println("ReadyQ1:\n" + this.readyQ1.toString());
         System.out.println("ReadyQ2:\n" + this.readyQ2.toString());
+        return "ReadyQ1:\n" + this.readyQ1.toString()+"ReadyQ2:\n" + this.readyQ2.toString();
     }
 
-    protected void showBlockedProcess() {
+    protected String showBlockedProcess() {
         System.out.println("BlockedQ:\n" + this.blockedQ.toString());
+        return "BlockedQ:\n" + this.blockedQ.toString();
     }
 
-    protected void showRunningProcess() {
+    protected String showRunningProcess() {
         System.out.println("RunQ:\n" + this.runQ.toString());
+        return "RunQ:\n" + this.runQ.toString();
     }
 
     private PCB searchPCB(int pid) {
@@ -1309,8 +1312,10 @@ public class VEnv {
         return null;
     }
 
-    protected void showPCB(int pid) {
-        System.out.println(searchPCB(pid));
+    protected PCB showPCB(int pid) {
+        PCB p = searchPCB(pid);
+        System.out.println(p);
+        return p;
     }
 
     protected void showPT(int pid) {
@@ -1318,7 +1323,7 @@ public class VEnv {
         System.out.println(searchPCB(pid).getCodePT());
     }
 
-    protected void dump(int pid) {
+    protected String dump(int pid) {
         PCB p = searchPCB(pid);
         int data_frame = p.getdataPage()[0] * FRAME_SIZE;
         int code_frame_end = p.getcodePage()[0] * FRAME_SIZE + p.getCodeSize();
@@ -1329,6 +1334,7 @@ public class VEnv {
             s += memory[i] + ",";
         }
         System.out.println(s);
+        return s;
     }
 
     protected void showFreeFrames() {
