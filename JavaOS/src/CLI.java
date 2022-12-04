@@ -28,8 +28,10 @@ public class CLI {
                     VE.readAndLoadBinFile(filename);
                 }
 
+            } else if (input.contentEquals("")) {
+                System.out.println();
+                
             } else if (input.contains("run -p")) {
-
                 int pid = Integer.parseInt(input.substring(7));
                 VE.executeOnce(pid);
 
@@ -41,7 +43,6 @@ public class CLI {
                 VE.debugAll();
 
             } else if (input.contentEquals("run -a")) {
-
                 VE.executeAll();
 
             } else if (input.contains("kill -p")) {
@@ -59,6 +60,7 @@ public class CLI {
                 int pid = Integer.parseInt(input.substring(6));
                 VE.clone(pid);
                 System.out.println("Process Cloned.");
+                
             } else if (input.contains("unblock")) {
                 int pid = Integer.parseInt(input.substring(8));
                 VE.unblock(pid);
@@ -66,6 +68,45 @@ public class CLI {
             } else if (input.contains("block")) {
                 int pid = Integer.parseInt(input.substring(6));
                 VE.block(pid);
+
+            } else if (input.contentEquals("list -a")) {
+                VE.showProcess();
+                VE.showBlockedProcess();
+                VE.showRunningProcess();
+                
+            } else if (input.contentEquals("list -b")) {
+                VE.showBlockedProcess();
+                
+            } else if (input.contentEquals("list -r")) {
+                VE.showProcess();
+                
+            } else if (input.contentEquals("list -e")) {
+                VE.showRunningProcess();
+                
+            } else if (input.contains("display -p")) {
+                int pid = Integer.parseInt(input.substring(11));
+                VE.showPCB(pid);
+                
+            } else if (input.contains("display -m")) {
+                int pid = Integer.parseInt(input.substring(11));
+                VE.showPT(pid);
+                
+            } else if (input.contains("dump")) {
+                int pid = Integer.parseInt(input.substring(5));
+                VE.dump(pid);
+                
+            } else if (input.contentEquals("frames -f")) {
+                VE.showFreeFrames();
+                
+            } else if (input.contentEquals("mem")) {
+                System.out.println(VE.showMem());
+                
+            } else if (input.contentEquals("frames -a")) {
+                VE.showAllocFrames();
+                
+            } else if (input.contentEquals("registers")) {
+                System.out.println(VE);
+                System.out.println(VE.showFlags());
                 
             } else if (input.contentEquals("shutdown")) {
                 System.out.println(VE.shutdown());
@@ -73,6 +114,7 @@ public class CLI {
 
             } else if (input.contentEquals("hibernate")) {
                 break;
+                
             } else {
                 System.out.println("Invalid Command");
             }

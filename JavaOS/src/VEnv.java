@@ -988,9 +988,11 @@ public class VEnv {
         }
 
         for (PCB p : readyQ2.toPCBArray()) {
-            if (p.getID() == pid) {
-                readyQ2.remove((PCB) p);
-                return (PCB) p;
+            if (p != null) {
+                if (p.getID() == pid) {
+                    readyQ2.remove((PCB) p);
+                    return (PCB) p;
+                }
             }
         }
 
@@ -1240,8 +1242,8 @@ public class VEnv {
             }
 
             SPR[9]++; // moves to next instrcution
-            System.out.println("One instruction executed:\n"+this.toString());
-            System.out.println("Instruction: "+instruction);
+            System.out.println("One instruction executed:\n" + this.toString());
+            System.out.println("Instruction: " + instruction);
             currPCB.setSPR(SPR);
             currPCB.setGPR(GPR);
             currPCB.setFlags(this.flagRegistor);
@@ -1258,21 +1260,106 @@ public class VEnv {
         }
 
     }
-    
-    protected void debugAll(){
-        for(PCB p : readyQ1.toArray(new PCB[5])){
-            if(p != null)
-            this.debugOnce(p.getID());
+
+    protected void debugAll() {
+        for (PCB p : readyQ1.toArray(new PCB[5])) {
+            if (p != null) {
+                this.debugOnce(p.getID());
+            }
         }
-        
-        for(PCB p : readyQ2.toPCBArray()){
-            if(p != null)
-            this.debugOnce(p.getID());
+
+        for (PCB p : readyQ2.toPCBArray()) {
+            if (p != null) {
+                this.debugOnce(p.getID());
+            }
         }
-        
+
         System.out.println("One instruction of all the loaded processes executed.");
-        
+
     }
 
-    //--------------------------------------------------------------------------
+    protected void showProcess() {
+        System.out.println("ReadyQ1:\n" + this.readyQ1.toString());
+        System.out.println("ReadyQ2:\n" + this.readyQ2.toString());
+    }
+
+    protected void showBlockedProcess() {
+        System.out.println("BlockedQ:\n" + this.blockedQ.toString());
+    }
+
+    protected void showRunningProcess() {
+        System.out.println("RunQ:\n" + this.runQ.toString());
+    }
+
+    private PCB searchPCB(int pid) {
+        for (PCB p : readyQ1) {
+            if (p.getID() == pid) {
+                return p;
+            }
+        }
+
+        for (PCB p : readyQ2.toPCBArray()) {
+            if (p != null) {
+                if (p.getID() == pid) {
+                    return (PCB) p;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    protected void showPCB(int pid) {
+        System.out.println(searchPCB(pid));
+    }
+
+    protected void showPT(int pid) {
+        System.out.println(searchPCB(pid).getDataPT());
+        System.out.println(searchPCB(pid).getCodePT());
+    }
+
+    protected void dump(int pid) {
+        PCB p = searchPCB(pid);
+        int data_frame = p.getdataPage()[0] * FRAME_SIZE;
+        int code_frame_end = p.getcodePage()[0] * FRAME_SIZE + p.getCodeSize();
+
+        String s = "Memory Dump:\n";
+
+        for (int i = data_frame; i <= code_frame_end; i++) {
+            s += memory[i] + ",";
+        }
+        System.out.println(s);
+    }
+
+    protected void showFreeFrames() {
+        int i = 0;
+        for (boolean b : this.checkPages) {
+            if (!b) {
+                System.out.println(i + " -> " + i * FRAME_SIZE + " ");
+            }
+            i++;
+        }
+    }
+
+    protected void showAllocFrames() {
+        for (PCB p : readyQ1) {
+            {
+                System.out.println("ID: " + p.getID());
+                System.out.println(p.getCodePT());
+                System.out.println(p.getDataPT());
+            }
+        }
+
+        for (PCB p : readyQ2.toPCBArray()) {
+            if (p != null) {
+                System.out.println("ID: " + p.getID());
+                System.out.println(p.getCodePT());
+                System.out.println(p.getDataPT());
+            }
+        }
+
+    }
 }
+
+//--------------------------------------------------------------------------
+

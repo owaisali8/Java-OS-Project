@@ -142,5 +142,13 @@ public class PCB {
     public boolean equals(int pid){
         return this.getID() == pid;
     }
+    
+    public PageTable getCodePT(){
+        return this.codePT;
+    }
+    
+    public PageTable getDataPT(){
+        return this.dataPT;
+    }
 
 }
