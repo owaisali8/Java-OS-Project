@@ -1,7 +1,8 @@
 
+import java.io.Serializable;
 import java.util.Comparator;
 
-class CustomComparator implements Comparator<PCB> {
+class CustomComparator implements Comparator<PCB>, Serializable{
 
     @Override
     public int compare(PCB p1, PCB p2) {

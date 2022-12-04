@@ -1,8 +1,9 @@
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-class CircularQueue<E> implements Iterable{
+class CircularQueue<E> implements Iterable, Serializable{
 
     private E[] circularQueueAr;
     private int maxSize;   //Maximum Size of Circular Queue

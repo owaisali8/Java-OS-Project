@@ -1,11 +1,14 @@
 
+import java.io.IOException;
+
+
 /**
  *
  * @author Owais, Hamza and Yunus
  */
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         /* For phase 1 Files
         
         var main = new VEnv("p0.txt");

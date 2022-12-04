@@ -3,9 +3,10 @@
  *
  * @author Owais, Hamza and Yunus
  */
+import java.io.Serializable;
 import java.util.Hashtable;
 
-public class PageTable {
+public class PageTable implements Serializable{
     // first integer is logical address, second is physical address
 
     private final Hashtable<Integer, Integer> pageTable = new Hashtable<>();

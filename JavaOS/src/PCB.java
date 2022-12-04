@@ -1,9 +1,12 @@
 
+import java.io.Serializable;
+
+
 /**
  *
  * @author Owais, Hamza and Yunus
  */
-public class PCB {
+public class PCB implements Serializable{
 
     private int id;
     private int priority;

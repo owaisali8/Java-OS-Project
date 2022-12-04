@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.PriorityQueue;
 import java.util.Scanner;
@@ -12,7 +13,7 @@ import java.util.Scanner;
  *
  * @author Owais, Hamza and Yunus
  */
-public class VEnv {
+public class VEnv implements Serializable{
 
     // Intializing our arrays
     //  Special Purpose Registors(SPRs)

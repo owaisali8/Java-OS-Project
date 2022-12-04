@@ -1,6 +1,13 @@
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.WriteAbortedException;
 import java.util.Scanner;
 
 public class CLI {
@@ -9,7 +16,17 @@ public class CLI {
     }
 
     public void run() throws IOException {
-        VEnv VE = new VEnv();
+
+        VEnv VE; // loading VENV from file.
+        try {
+            FileInputStream fileIn = new FileInputStream("VE_State.dat");
+            ObjectInputStream objIn = new ObjectInputStream(fileIn);
+            VE = (VEnv) objIn.readObject();
+            objIn.close();
+            fileIn.close();
+        } catch (ClassNotFoundException | FileNotFoundException | WriteAbortedException ex) {
+            VE = new VEnv();
+        }
 
         FileWriter log = new FileWriter("Log.txt");
 
@@ -140,16 +157,24 @@ public class CLI {
                 String s = VE.shutdown();
                 System.out.println(s);
                 log.write(s);
+                File state = new File("VE_State.dat");
+                state.delete();
                 break;
 
             } else if (input.contentEquals("hibernate")) {
-                break;
+                FileOutputStream fileStream = new FileOutputStream("VE_State.dat");
+                ObjectOutputStream objStream = new ObjectOutputStream(fileStream);
+                objStream.writeObject(VE);
+                objStream.close();
+                fileStream.close();
+                System.out.println("State Hibernated");
+                log.write("State Hibernated");
+                //break;
 
-            } else if (input.contentEquals("exit")){
+            } else if (input.contentEquals("exit") || input.contentEquals("sleep")) {
                 System.out.println("CLI exited");
                 break;
-            }
-            else {
+            } else {
                 System.out.println("Invalid Command");
                 log.write("Invalid Command");
             }
