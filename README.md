@@ -210,3 +210,126 @@ Each cycle contains the following steps:
 5. Execute the instruction by updating registers, memory etc.
 6. If the instruction from step 3 is 'End' then this indicates that the program was executed successfully otherwise go back to step 3.
 7. Show the contents of all the registers (GPRs and SPRs) after executing one instruction.
+
+
+**Project Phase 2**
+
+# Operating System Project - Phase 2 (Process and Memory Management)
+
+## Prerequisite
+
+**Phase 2 is built on phase 1.** For this phase, it is required that you complete the implementation of instruction set from phase 1.
+
+## What to do?
+
+- Creating process control block
+- Maintaining ready and running queues
+- Memory allocation (segmentation with paging) & deallocation
+- Loading, running and terminating process
+- Error Handling
+- CPU Scheduling (multilevel feedback/multilevel queue scheduling)
+
+### Process Control Block
+
+Every process has a process control block (PCB), which has all the information required to run a process. PCB contains at least the following:
+
+- Process ID
+- Process priority
+- Process size (code+data+segment)
+- Process File name
+- General Purpose Registers
+- Special Purpose Registers
+- Page Table
+- \* Accounting Information (execution time, waiting time)
+
+### Program Loading
+
+A process is read from a file. When a process is loaded
+
+- It is parsed for valid priority, valid data and code sizes. No need to check instruction syntax at this stage.
+- Priority ranges from 0-31. Any priority less than 0 or greater than or equal to 32 is invalid
+- The program is loaded into memory.
+- PCB is created and added to the ready queue.
+
+Priorities are grouped into two levels, 0-15 and 16-31. Two ready queues are maintained for each priority level.
+
+Queue 1: for priorities 0-15 (higher priorities)
+
+Queue 2: for priorities 16-31
+
+A process will be assigned to any one of these queues according to the priority.
+
+### Data loading
+
+Data will be loaded in memory according to the size specified. For example if data size is defined as ' **0004'** , it means that data size is 4 bytes. Only four bytes will be loaded in the data segment.
+
+### Code loading
+
+Only that much code is read which is specified in code segment declaration. For example if code size is **'000e'** then code size is 14 bytes and only fourteen bytes will be read from the file and loaded in code segment.
+
+You should be able to load more than one program in memory and maintain ready queues of the processes.
+
+### Program Execution
+
+The first process is selected and removed from the ready queue and its state is restored (its registers from PCB are restored to the CPU registers). Instructions are fetched from memory, decoded, executed and if required, values written back. Syntax errors are checked at process execution stage. Any invalid instruction or error condition terminates the process. During execution, a process will move between running and ready queues.
+
+Write the dump of process memory and PCB in a file after each instruction execution.
+
+### Program termination
+
+When the process finishes, either due to abnormal conditions or reaching the 'end' statement, its PCB is removed from the queue and its memory dump (data, stack and code sections) and PCB are printedand also written to a file.
+
+### Errors
+
+An error terminates the process. Some of the errors are:
+
+- Invalid opcode / register code
+- Trying to access data outside allocated space
+- Trying to jump, using call or branch statement, to area outside the allocated space
+- Invalid priority (\<0 or \>31)
+- Stack overflow/underflow
+- Divide-by-zero
+- Invalid code size (code size specified is less than or greater than the actual code)
+
+## 1. Multiple Process Management
+
+The salient features of Multiple Process Management are:
+
+- Maintaining ready & running queues
+- CPU Scheduling (multilevel feedback/multilevel queue scheduling)
+
+### Ready & Running Queues
+
+Ready and running queues are implemented as priority queues of PCBs. There will be only one process in running queue whereas ready queue may have more than one.
+
+### CPU Scheduling
+
+**Assumption:** Each instruction takes 2 clock cycles.
+
+Multilevel Queue Scheduling
+
+Process priorities are fixed and they do not change. Process once assigned to a queue will remain in the queue till it is terminated.
+
+For queue 1, use Priority scheduling algorithm and for queue 2 Round Robin algorithm (time slice = 8 clock cycles \*this should be configurable). Process from queue 2 is selected only if queue 1 is empty.
+
+If more than one process is in queue 2 (provided queue 1 is empty) then the first process in the queue is selected, its state is restored and it is run for one time slice. After its time slice finishes, the current state is saved in the PCB, which is then added to the ready queue and the state for the next process is restored
+
+## **2. Memory management**
+
+### What to do?
+
+- Memory Allocation & De-allocation
+- Trapping access violations
+
+Segmentation with paging has to be used to address the memory. The Memory has to be divided into pages of size 128 Bytes. You would need the following data structure:
+
+- _Page frames_ – Divide user memory in frames
+- _Page tables_ – Page tables for all the processes in the memory
+- _Free page frame list_ – List of all page frames not currently in use by any process
+
+The memory requirement of the process is the sum of the size of stack, code and data. You will be translating the addresses in two steps:
+
+1. Use the Base & Offset to calculate the logical Address into one linear address (segmentation concepts)
+2. Depending upon the page size, find the frame number from page table and access the memory location (paging concepts)
+
+![](https://loonytek.files.wordpress.com/2015/11/add.png)
