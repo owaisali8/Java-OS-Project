@@ -212,8 +212,6 @@ Each cycle contains the following steps:
 7. Show the contents of all the registers (GPRs and SPRs) after executing one instruction.
 
 
-**Project Phase 2**
-
 # Operating System Project - Phase 2 (Process and Memory Management)
 
 ## Prerequisite
@@ -333,3 +331,49 @@ The memory requirement of the process is the sum of the size of stack, code and 
 2. Depending upon the page size, find the frame number from page table and access the memory location (paging concepts)
 
 ![](https://loonytek.files.wordpress.com/2015/11/add.png)
+
+
+
+## Phase 3 (CLI/GUI)
+
+### What to do?
+
+Make a command line interpreter/graphical user interface so that we can load the processes, run them and view the details
+
+You are required to support the commands listed below. Any other useful command according to your implementation would be appreciated but not required.
+
+| **Process Related Commands** |**Description**|
+| --- | --- |
+| Load Process **load** _file_ | Prompts the user for a process filename and loads the process into memory. Displays the process ID of the loaded process |
+| Execute Process **run**** –p **_process\_id_ | Asks user to select / enter a process id and then** completely** execute only the selected process |
+| Debug Process **debug -p** _process\_id_ | Asks user to select / enter a process id and then execute **only one instruction** of the selected process |
+| Debug All **debug**** -a **| Execute** only one instruction** of all the loaded processes |
+| Execute All **run -a** | **Completely** execute all the loaded processes |
+| Kill Process **kill –p** _process\_id_ | Forcefully kill a process |
+| \*Create Clone **clone** _process\_id_ | Create a clone of selected process |
+| \*Block Process **block** _process\_id_ | Block a process (move it to blocked queue) |
+| \*Unblock Process **unblock** _process\_id_ | Unblock a process (move it from blocked queue to ready queue) |
+| **Display Related Commands** |
+| List Process **list –a**  **list –b**** list –r ****list -e** | Lists the processes currently loaded. There should be additional option to display processes in a specified state (like blocked).-a all process-b blocked processes-r processes in ready state-e process in running state |
+| Display PCB **display –p** _process\_id_ | Displays the PCB of the selected process |
+| Display Page Table **display –m** _process\_id_ | Displays the page table of the selected process |
+| Memory Dump **dump** _process\_id_ | Show the memory dump of the selected process. Dump will be shown on the screen and also written in a file named _process\_file\_name_.dump |
+| Free Frames **frames -f** | Show the frame number and location of free frames |
+| Memory Details **mem** | List the details about memory allocated to a given process |
+| Allocated Frames **frames -a** | Show the process id and frame number of all allocated frames |
+| Display Registers **registers** | Displays the current contents of the CPU registers (GPR, SPR, flag reg.) |
+
+Notes for CLI:
+- Commands are case-sensitive
+- Give appropriate error message if any error in the command/option or the argument
+- Return to the prompt immediately after executing the command and displaying the required output
+Notes for CLI and GUI
+- All output will also be written in a (log) file.
+- Do not make any assumptions on file names (like specific extensions)
+- A valid file name can contain letters/numbers/\_/.
+- All output files must be saved in one directory
+
+**Miscellaneous Commands** | **Description** |
+| --- | --- |
+| Shutdown | Shuts down the operating system, during shutdown process all processes should be killed and their process IDs displayed |
+| \*Hibernate | Save the current state of the system and resume from the same state when the system is started again |
